@@ -15,3 +15,10 @@ Eine Datei: `index.html` (HTML, CSS, JS, Schrift eingebettet). Läuft über GitH
 
 - Mediathek-Ordner: `Bilder/JJJJ/JJJJ-MM/<bild>` + `<bild>.auto.json` (Begleitdatei = Wahrheit). Feldnamen nie umbenennen, nur ergänzen.
 - Bilder über 1600×1200 (Hochformat 1200×1600) werden beim Einsortieren verkleinert.
+
+## Updates (dauerhaft, Wunsch von LION)
+
+- Jeder Push auf `main` ist ein Update (GitHub Pages). Die App prüft `version.json` beim Start und alle 30 Minuten
+  und zeigt oben rechts „Update verfügbar“ mit „Später“ / „Aktualisieren“ (wie archivn).
+- Bei jeder Änderung **zusammen** hochzählen: `APP_VERSION`/`APP_BUILD` in `index.html` und `version` / `build` / `notes` in `version.json`.
+  Bei Änderungen an `sw.js` den Cache-Namen erhöhen.

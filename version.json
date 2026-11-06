@@ -1,0 +1,11 @@
+{
+  "version": "1.4.0",
+  "build": 6,
+  "date": "2026-11-06",
+  "notes": [
+    "Einstellungen mit Mediathek, Marken & Modelle, Updates und Sicherung",
+    "Update-Hinweis wie bei archivn: prüft beim Start und alle 30 Minuten",
+    "Marken, Modelle und Generationen als Auswahllisten mit Baujahr und Facelift-Jahr",
+    "Download-Knopf an jeder Kachel, Mehrfachauswahl, ZIP, gemeinsam ändern"
+  ]
+}

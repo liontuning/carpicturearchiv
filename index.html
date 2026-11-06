@@ -88,6 +88,12 @@ select{min-width:0;max-width:100%;text-overflow:ellipsis}
 .item.sel .tb.pick span::after{content:"✓";display:block;color:#fff;font-size:15px;line-height:16px;text-align:center}
 .selbar{position:fixed;left:var(--m);right:var(--m);bottom:var(--m);z-index:41;max-width:1100px;margin:0 auto;background:var(--surface);border-left:4px solid var(--acc);border-radius:var(--r);box-shadow:0 8px 32px #000a;padding:12px var(--m);display:flex;gap:var(--gap);align-items:center;flex-wrap:wrap}
 .selbar .lbl{margin:0;min-width:120px;color:var(--text)}
+.set{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.set .hint{margin:0 0 10px}
+.upd{position:fixed;top:88px;right:var(--m);z-index:45;width:min(360px,calc(100vw - 32px));background:var(--surface);border-radius:12px;box-shadow:0 10px 36px #000c;border:1px solid var(--line);padding:var(--m);display:flex;flex-direction:column;gap:8px}
+.upd ul{margin:4px 0;padding:0;list-style:none;max-height:180px;overflow-y:auto}
+.upd li{position:relative;padding-left:14px;font-size:16px;font-weight:500;margin:2px 0}
+.upd li::before{content:"";position:absolute;left:0;top:.6em;width:6px;height:2px;background:var(--acc)}
 .catlist{height:260px;overflow-y:auto;margin-top:12px;border-top:1px solid var(--line)}
 .catrow{display:flex;align-items:center;gap:var(--gap);height:44px;border-bottom:1px solid var(--line);font-size:16px}
 .catrow span{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
@@ -128,7 +134,7 @@ dialog::backdrop{background:#000c}
   <h1>AUTO<span>·</span>BILDARCHIV</h1>
   <div class="tabs"><button id="tabUp" class="on">Einsortieren</button><button id="tabSearch">Suchen</button></div>
   <div class="status" id="status" title=""><span class="dot" id="dot"></span><span id="statusTxt" style="overflow:hidden;text-overflow:ellipsis">…</span></div>
-  <button id="libBtn">Mediathek</button>
+  <button id="libBtn">Einstellungen</button>
 </header>
 
 <main>
@@ -190,18 +196,38 @@ dialog::backdrop{background:#000c}
   </div>
 </div></dialog>
 
-<dialog id="libDlg" style="max-width:min(680px,96vw)"><div style="padding:var(--m)">
-  <h2 style="margin:0 0 8px;font-size:26px">Mediathek</h2>
-  <p class="hint" id="libInfo"></p>
-  <div class="row" style="margin:var(--m) 0">
-    <button class="btn pri" id="libNew">Neue Mediathek anlegen …</button>
-    <button id="libOpen">Vorhandene öffnen …</button>
-  </div>
-  <div class="row"><button id="libCat">Marken &amp; Modelle</button><button id="libReindex">Neu einlesen</button><button id="libMigrate" class="hidden">Browser-Bilder in Mediathek übernehmen</button>
-    <button id="installBtn" class="hidden">Als App installieren</button><button id="exportBtn">Backup-Datei speichern</button><button id="importBtn">Backup-Datei laden</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
-  <p class="hint" style="margin-top:var(--m)">In der Mediathek liegt alles: jedes Bild mit einer Begleitdatei (<code>.auto.json</code>), abgelegt nach Datum. Die Begleitdateien sind die Wahrheit, die Suche wird daraus jedes Mal neu aufgebaut. Lege den Ordner in Google Drive (oder OneDrive/Dropbox), dann haben Mac und Windows dieselbe Mediathek.</p>
-  <div class="row" style="justify-content:flex-end"><button id="libClose">Schließen</button></div>
+<dialog id="libDlg" style="max-width:min(760px,96vw)"><div style="padding:var(--m)">
+  <div class="row" style="justify-content:space-between"><h2 style="margin:0;font-size:28px">Einstellungen</h2><button id="libClose">Schließen</button></div>
+  <section class="set">
+    <span class="lbl">Mediathek</span>
+    <p class="hint" id="libInfo"></p>
+    <div class="row"><button class="btn pri" id="libNew" style="min-width:0;height:var(--ctl);font-size:17px">Neue Mediathek anlegen …</button><button id="libOpen">Vorhandene öffnen …</button><button id="libReindex">Neu einlesen</button><button id="libMigrate" class="hidden">Browser-Bilder übernehmen</button></div>
+  </section>
+  <section class="set">
+    <span class="lbl">Marken &amp; Modelle</span>
+    <p class="hint">Eingebaute Auswahllisten mit Bauzeit und Facelift-Jahr. Fehlt etwas, kannst du es hier ergänzen.</p>
+    <div class="row"><button id="libCat">Marken &amp; Modelle bearbeiten</button></div>
+  </section>
+  <section class="set">
+    <span class="lbl">App &amp; Updates</span>
+    <p class="hint num" id="verInfo"></p>
+    <p class="hint num" id="updState" style="min-height:1.3em;margin:0 0 8px"></p>
+    <div class="row"><button id="updCheck">Nach Updates suchen</button><button id="installBtn" class="hidden">Als App installieren</button></div>
+  </section>
+  <section class="set">
+    <span class="lbl">Sicherung</span>
+    <p class="hint">Alle Bilder mit Angaben als eine Datei, z. B. zum Umziehen oder für Browser ohne Ordner-Zugriff.</p>
+    <div class="row"><button id="exportBtn">Backup-Datei speichern</button><button id="importBtn">Backup-Datei laden</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
+  </section>
 </div></dialog>
+
+<div class="upd hidden" id="updBox">
+  <span class="lbl" style="color:var(--acc);margin:0">Update verfügbar</span>
+  <div style="font-size:22px;font-weight:700" class="num" id="updVer"></div>
+  <span class="lbl num" style="margin:0" id="updCur"></span>
+  <ul id="updNotes"></ul>
+  <div class="row"><button id="updLater">Später</button><button class="btn pri" id="updGo" style="min-width:0;height:var(--ctl);font-size:17px">Aktualisieren</button></div>
+</div>
 
 <div class="selbar hidden" id="selbar">
   <span class="lbl num" id="selCount">0 ausgewählt</span>
@@ -744,7 +770,7 @@ async function openDirLibrary(handle,{create}){
   $('libMigrate').textContent=`${inBrowser} Browser-Bilder in Mediathek übernehmen`;
   $('banner').classList.add('hidden');toast(`Mediathek „${root.name}“ geöffnet · ${cars.length} Bilder`);return true}
 async function pickDir(create){try{const h=await showDirectoryPicker({id:'autobildarchiv',mode:'readwrite'});if(await openDirLibrary(h,{create}))$('libDlg').close()}catch(e){if(e.name!=='AbortError')toast(e.message,true)}}
-$('libBtn').onclick=async()=>{
+$('libBtn').onclick=async()=>{showVer();
   $('libInfo').innerHTML=store.mode==='dir'?`Geöffnet: <b>${esc(store.name)}</b> · ${cars.length} Bilder`:
     canDir?'Gerade liegen die Bilder nur in diesem Browser. Lege eine Mediathek in deinem Google-Drive-Ordner an, dann haben Mac und Windows dieselben Bilder.':
     '<b style="color:var(--amber)">Bitte die App in Google Chrome oder Microsoft Edge öffnen.</b> Dieser Browser (z. B. Safari oder Firefox) darf keine Ordner öffnen, deshalb geht hier keine gemeinsame Mediathek. Bilder, die du hier einsortierst, bleiben nur in diesem Browser.';
@@ -777,6 +803,28 @@ let installEvt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;$('installBtn').classList.remove('hidden')});
 $('installBtn').onclick=async()=>{if(!installEvt)return;installEvt.prompt();await installEvt.userChoice;installEvt=null;$('installBtn').classList.add('hidden')};
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// ---------- Version und Updates (wie archivn: prüft beim Start und alle 30 Minuten, installiert erst auf Knopfdruck) ----------
+const APP_VERSION='1.4.0',APP_BUILD=6;
+let updLatest=null,updLaterBuild=+(()=>{try{return localStorage.getItem('updLater')||0}catch{return 0}})();
+function showVer(){$('verInfo').textContent=`Installiert: Version ${APP_VERSION} · Build ${APP_BUILD}`+(matchMedia('(display-mode: standalone)').matches?' · als App':' · im Browser')}
+async function checkUpdate(manual){if(manual)$('updState').textContent='Suche nach Updates …';
+  try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const v=await r.json();updLatest=v;
+    if(v.build>APP_BUILD){$('updState').textContent=`Neue Version ${v.version} (Build ${v.build}) verfügbar`;
+      if(manual||v.build>updLaterBuild){$('updVer').textContent=`Version ${v.version} · Build ${v.build}`;$('updCur').textContent=`Installiert: ${APP_VERSION} · Build ${APP_BUILD}`;
+        $('updNotes').innerHTML=(v.notes||[]).slice(0,8).map(n=>`<li>${esc(n)}</li>`).join('');$('updBox').classList.remove('hidden')}}
+    else $('updState').textContent=manual?'✓ Du hast die neueste Version.':''}
+  catch(e){$('updState').textContent=manual?'Keine Verbindung zum Update-Server. Später nochmal versuchen.':''}}
+$('updCheck').onclick=()=>checkUpdate(true);
+$('updLater').onclick=()=>{$('updBox').classList.add('hidden');if(updLatest){updLaterBuild=updLatest.build;try{localStorage.setItem('updLater',updLatest.build)}catch{}}};
+$('updGo').onclick=async()=>{$('updGo').disabled=true;$('updGo').textContent='Wird geladen …';
+  try{const reg=await navigator.serviceWorker?.getRegistration();if(reg)await reg.update().catch(()=>{});
+    const keys=await caches?.keys?.()||[];await Promise.all(keys.map(k=>caches.delete(k)))}catch{}
+  try{localStorage.setItem('updTarget',updLatest?.build||0)}catch{}
+  location.reload()};
+// nach dem Neuladen: hat das Update geklappt?
+try{const t=+localStorage.getItem('updTarget');if(t){localStorage.removeItem('updTarget');setTimeout(()=>t<=APP_BUILD?toast(`✓ Aktualisiert auf Version ${APP_VERSION}`):toast('Das Update wird gerade noch verteilt. In 1–2 Minuten nochmal „Aktualisieren“.',true),800)}}catch{}
+showVer();setTimeout(()=>checkUpdate(false),3000);setInterval(()=>checkUpdate(false),30*60*1000);
 
 // ---------- Start ----------
 (async()=>{

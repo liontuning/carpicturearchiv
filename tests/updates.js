@@ -1,0 +1,24 @@
+const {chromium}=require('playwright');
+const assert=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)process.exitCode=1};
+(async()=>{const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:1280,height:850}});const errs=[];
+await ctx.addInitScript(()=>{window.__cls=0;new PerformanceObserver(l=>{for(const e of l.getEntries())window.__cls+=e.value}).observe({type:'layout-shift',buffered:true})});
+let remote={version:'1.4.0',build:6,notes:[]};
+await ctx.route('**/version.json*',r=>r.fulfill({contentType:'application/json',body:JSON.stringify(remote)}));
+const p=await ctx.newPage();p.on('pageerror',e=>errs.push(e.message));await p.goto('http://localhost:8770/');await p.waitForTimeout(3600);
+assert(!(await p.isVisible('#updBox')),'Gleiche Version: kein Update-Hinweis');
+await p.click('#libBtn');assert((await p.textContent('#verInfo')).includes('1.4.0'),'Einstellungen zeigen Version');
+await p.click('#updCheck');await p.waitForTimeout(400);assert((await p.textContent('#updState')).includes('neueste'),'Nach Updates suchen: aktuell');
+remote={version:'1.5.0',build:7,notes:['Neue Funktion A','Fehler B behoben']};
+await p.click('#updCheck');await p.waitForTimeout(400);assert(await p.isVisible('#updBox'),'Neue Version: Update-Hinweis erscheint');
+assert((await p.textContent('#updNotes')).includes('Neue Funktion A'),'Änderungen werden gezeigt');
+await p.click('#libClose');await p.click('#updLater');assert(!(await p.isVisible('#updBox')),'Später blendet aus');
+await p.reload();await p.waitForTimeout(3600);assert(!(await p.isVisible('#updBox')),'Nach „Später“ nicht sofort wieder');
+remote={version:'1.6.0',build:8,notes:['Noch neuer']};await p.evaluate(()=>checkUpdate(false));await p.waitForTimeout(300);
+assert(await p.isVisible('#updBox'),'Noch neueres Update erscheint wieder');
+const sw=await p.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration()));assert(sw,'Service Worker aktiv');
+await p.click('#updGo');await p.waitForTimeout(2500);
+assert(errs.length===0,'keine Fehler '+errs);console.log('CLS',await p.evaluate(()=>window.__cls));
+// offline: App startet aus dem Speicher
+await ctx.setOffline(true);await p.reload().catch(()=>{});await p.waitForTimeout(800);assert((await p.title())==='Auto-Bildarchiv','Startet offline');
+await ctx.setOffline(false);await p.click('#libBtn');await p.screenshot({path:require('os').tmpdir()+'/settings.png'});
+await b.close()})();
