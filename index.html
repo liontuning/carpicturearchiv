@@ -28,6 +28,8 @@ main{padding:var(--m);max-width:1500px;margin:0 auto}
 .card{background:var(--surface);border-radius:var(--r);padding:var(--m)}
 button,.btn{height:var(--ctl);padding:0 16px;border-radius:var(--r);border:0;background:var(--hi);color:var(--text);font:inherit;font-size:17px;cursor:pointer;white-space:nowrap}
 button:hover{background:#383633}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button:focus:not(:focus-visible){outline:none}
 .btn.pri{min-width:200px;background:var(--acc);color:#fff;height:var(--pri);padding:0 24px;font-size:20px;font-weight:700}
 .btn.pri:hover{background:#ff6d38}
 .btn.danger{background:transparent;color:var(--err);border:2px solid var(--err)}
@@ -166,7 +168,7 @@ dialog::backdrop{background:#000c}
   </div>
 </div></dialog>
 
-<dialog id="libDlg"><div style="padding:var(--m);max-width:640px">
+<dialog id="libDlg" style="max-width:min(680px,96vw)"><div style="padding:var(--m)">
   <h2 style="margin:0 0 8px;font-size:26px">Mediathek</h2>
   <p class="hint" id="libInfo"></p>
   <div class="row" style="margin:var(--m) 0">
@@ -175,7 +177,7 @@ dialog::backdrop{background:#000c}
   </div>
   <div class="row"><button id="libReindex">Neu einlesen</button><button id="libMigrate" class="hidden">Browser-Bilder in Mediathek übernehmen</button>
     <button id="exportBtn">Backup-Datei speichern</button><button id="importBtn">Backup-Datei laden</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
-  <p class="hint" style="margin-top:var(--m)">In der Mediathek liegt alles: jedes Bild mit einer Begleitdatei (<code>.auto.json</code>), abgelegt nach Datum. Die Begleitdateien sind die Wahrheit, die Suche wird daraus jedes Mal neu aufgebaut. Ordner auf der SSD wählen, dann kann man sie an jeden Rechner anstecken.</p>
+  <p class="hint" style="margin-top:var(--m)">In der Mediathek liegt alles: jedes Bild mit einer Begleitdatei (<code>.auto.json</code>), abgelegt nach Datum. Die Begleitdateien sind die Wahrheit, die Suche wird daraus jedes Mal neu aufgebaut. Lege den Ordner in Google Drive (oder OneDrive/Dropbox), dann haben Mac und Windows dieselbe Mediathek.</p>
   <div class="row" style="justify-content:flex-end"><button id="libClose">Schließen</button></div>
 </div></dialog>
 
@@ -439,8 +441,8 @@ async function openDirLibrary(handle,{create}){
 async function pickDir(create){try{const h=await showDirectoryPicker({id:'autobildarchiv',mode:'readwrite'});if(await openDirLibrary(h,{create}))$('libDlg').close()}catch(e){if(e.name!=='AbortError')toast(e.message,true)}}
 $('libBtn').onclick=async()=>{
   $('libInfo').innerHTML=store.mode==='dir'?`Geöffnet: <b>${esc(store.name)}</b> · ${cars.length} Bilder`:
-    canDir?'Gerade liegen die Bilder nur in diesem Browser. Lege eine Mediathek in einem Ordner an (z. B. auf der SSD), dann sind sie als normale Dateien gesichert.':
-    'Dieser Browser kann keine Ordner öffnen (geht in Chrome und Edge). Hier bleiben die Bilder im Browser, sichere sie über „Backup-Datei speichern“.';
+    canDir?'Gerade liegen die Bilder nur in diesem Browser. Lege eine Mediathek in deinem Google-Drive-Ordner an, dann haben Mac und Windows dieselben Bilder.':
+    '<b style="color:var(--amber)">Bitte die App in Google Chrome oder Microsoft Edge öffnen.</b> Dieser Browser (z. B. Safari oder Firefox) darf keine Ordner öffnen, deshalb geht hier keine gemeinsame Mediathek. Bilder, die du hier einsortierst, bleiben nur in diesem Browser.';
   ['libNew','libOpen'].forEach(i=>$(i).classList.toggle('hidden',!canDir));$('libReindex').classList.toggle('hidden',store.mode!=='dir');
   if(store.mode!=='dir')$('libMigrate').classList.add('hidden');$('libDlg').showModal()};
 $('libClose').onclick=()=>$('libDlg').close();
@@ -471,11 +473,12 @@ $('importFile').onchange=async()=>{const f=$('importFile').files[0];if(!f)return
   if(h){const p=await h.queryPermission({mode:'readwrite'});
     if(p==='granted'){try{const meta=await readMeta(h);if(meta){await useStore(DirStore(h,meta));return}}catch{}}
     await useStore(BrowserStore);
-    const b=$('banner');b.innerHTML=`<p>Mediathek <b>${esc(h.name)}</b> ist nicht verbunden (SSD angesteckt?). Bis dahin wird nur im Browser gespeichert.</p><button class="btn pri" id="reconnect">Verbinden</button><button onclick="this.parentNode.classList.add('hidden')">Später</button>`;b.classList.remove('hidden');
+    const b=$('banner');b.innerHTML=`<p>Mediathek <b>${esc(h.name)}</b> ist nicht verbunden. Bis dahin wird nur im Browser gespeichert.</p><button class="btn pri" id="reconnect">Verbinden</button><button onclick="this.parentNode.classList.add('hidden')">Später</button>`;b.classList.remove('hidden');
     $('reconnect').onclick=async()=>{try{if(await h.requestPermission({mode:'readwrite'})==='granted'&&await readMeta(h))await openDirLibrary(h,{create:false});else toast('Ordner nicht erreichbar. Unter „Mediathek“ neu wählen.',true)}catch(e){toast(e.message,true)}};
     return}
   await useStore(BrowserStore);
-  if(canDir&&!cars.length){const b=$('banner');b.innerHTML=`<p><b>Tipp:</b> Leg zuerst eine Mediathek in einem Ordner an (z. B. auf der SSD). Dann liegen alle Bilder mit ihren Angaben als normale Dateien dort.</p><button class="btn pri" id="bNew">Mediathek anlegen</button><button onclick="this.parentNode.classList.add('hidden')">Später</button>`;b.classList.remove('hidden');$('bNew').onclick=()=>pickDir(true)}
+  if(!canDir){const b=$('banner');b.innerHTML=`<p><b>Bitte in Google Chrome oder Microsoft Edge öffnen.</b> In diesem Browser kann die App nicht auf den gemeinsamen Mediathek-Ordner zugreifen.</p><button onclick="this.parentNode.classList.add('hidden')">Verstanden</button>`;b.classList.remove('hidden');return}
+  if(canDir&&!cars.length){const b=$('banner');b.innerHTML=`<p><b>Tipp:</b> Leg zuerst eine Mediathek in deinem Google-Drive-Ordner an. Dann liegen alle Bilder mit ihren Angaben dort, und Mac und Windows sehen dasselbe.</p><button class="btn pri" id="bNew">Mediathek anlegen</button><button onclick="this.parentNode.classList.add('hidden')">Später</button>`;b.classList.remove('hidden');$('bNew').onclick=()=>pickDir(true)}
 })().catch(e=>toast('Startfehler: '+e.message,true));
 </script>
 </body>
