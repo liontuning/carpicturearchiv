@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-Bildarchiv</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Gestaltung wie Loomn (Design.swift): ein Raster, Barlow Condensed, Signalorange. Orange heißt aktiv. */
+:root{--bg:#141414;--surface:#222120;--hi:#2e2d2b;--line:#3a3936;--text:#f0eee9;--dim:#8c8984;--acc:#ff5a1f;--amber:#ffc200;--err:#ff4545;--ok:#5bd17a;
+  --gap:8px;--m:16px;--ctl:40px;--pri:52px;--r:8px;--tile:240px}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--text);font:600 17px/1.3 "Barlow Condensed",system-ui,sans-serif;font-stretch:condensed}
+.lbl{font-size:13px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header{display:flex;align-items:center;gap:var(--gap);padding:var(--m);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;background:var(--bg);flex-wrap:wrap}
+header h1{font-size:28px;font-weight:700;margin:0 auto 0 0;letter-spacing:.5px}
+header h1 span{color:var(--acc)}
+main{padding:var(--m);max-width:1500px;margin:0 auto}
+.hidden{display:none!important}
+.card{background:var(--surface);border-radius:var(--r);padding:var(--m)}
+button,.btn{height:var(--ctl);padding:0 16px;border-radius:var(--r);border:0;background:var(--hi);color:var(--text);font:inherit;font-size:17px;cursor:pointer;white-space:nowrap}
+button:hover{background:#383633}
+.btn.pri{background:var(--acc);color:#fff;height:var(--pri);padding:0 24px;font-size:20px;font-weight:700}
+.btn.pri:hover{background:#ff6d38}
+.btn.danger{background:transparent;color:var(--err);border:2px solid var(--err)}
+button:disabled{opacity:.4;cursor:not-allowed}
+input,select,textarea{width:100%;height:var(--ctl);padding:0 12px;border:2px solid transparent;border-radius:var(--r);background:var(--hi);color:var(--text);font:inherit;font-size:17px;outline:none}
+textarea{height:80px;padding:8px 12px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+input::placeholder,textarea::placeholder{color:var(--dim)}
+.row{display:flex;gap:var(--gap);align-items:center;flex-wrap:wrap}
+.seg{display:flex;gap:4px;background:var(--hi);border-radius:var(--r);padding:4px;height:var(--ctl)}
+.seg button{flex:1;height:32px;padding:0 10px;background:transparent;font-size:16px}
+.seg button.on{background:var(--acc);color:#fff}
+.chk{display:flex;gap:10px;align-items:center;cursor:pointer;min-height:var(--ctl)}
+.chk input{width:22px;height:22px;accent-color:var(--acc)}
+.hint{color:var(--dim);font-size:15px;font-weight:500}
+.status{display:flex;align-items:center;gap:8px;height:var(--ctl);padding:0 12px;border-radius:var(--r);background:var(--surface);font-size:15px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--dim)}
+.dot.on{background:var(--ok)}.dot.warn{background:var(--amber)}
+.tabs{display:flex;gap:4px;background:var(--surface);padding:4px;border-radius:var(--r);height:48px}
+.tabs button{height:40px;background:transparent;font-size:18px}
+.tabs button.on{background:var(--acc);color:#fff}
+#drop{border:3px dashed var(--line);border-radius:var(--r);padding:40px var(--m);text-align:center;cursor:pointer;color:var(--dim);transition:border-color .12s,color .12s}
+#drop.over{border-color:var(--acc);color:var(--text)}
+#drop b{color:var(--text);font-size:26px;display:block;margin-bottom:4px}
+.upwrap{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.15fr);gap:var(--m);margin-top:var(--m)}
+@media (max-width:860px){.upwrap{grid-template-columns:1fr}}
+.queue{display:grid;grid-template-columns:repeat(auto-fill,120px);gap:var(--gap)}
+.q{position:relative;width:120px;height:90px;border:3px solid transparent;border-radius:var(--r);overflow:hidden;cursor:pointer;background:var(--hi)}
+.q.sel{border-color:var(--acc)}
+.q img{width:100%;height:100%;object-fit:cover;display:block}
+.q .x{position:absolute;top:4px;right:4px;width:24px;height:24px;padding:0;border-radius:50%;background:#000b;font-size:15px;line-height:24px}
+.q .dup{position:absolute;left:0;right:0;bottom:0;background:var(--err);color:#fff;font-size:12px;padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.q .wait{position:absolute;inset:0;display:grid;place-items:center;background:#0008;font-size:13px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px var(--m)}
+.form .full{grid-column:1/-1}
+.search{display:grid;grid-template-columns:280px 1fr;gap:var(--m)}
+@media (max-width:860px){.search{grid-template-columns:1fr}}
+.filters{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:96px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,var(--tile));gap:var(--m)}
+@media (max-width:560px){:root{--tile:calc(50vw - 24px)}}
+.item{width:var(--tile);background:var(--surface);border-radius:var(--r);overflow:hidden;cursor:pointer;border:2px solid transparent}
+.item:hover{border-color:var(--line)}
+.item .im{width:100%;aspect-ratio:4/3;background:var(--hi);display:block;object-fit:cover}
+.item .meta{padding:10px 12px}
+.item .t{font-size:20px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .s{color:var(--dim);font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.chip{font-size:13px;letter-spacing:.6px;text-transform:uppercase;padding:3px 8px;border-radius:6px;background:var(--hi);color:var(--dim)}
+.chip.fl{background:var(--acc);color:#fff}
+.chip.ok{color:var(--ok)}
+.chip.warn{color:var(--amber)}
+.chip.click{cursor:pointer}
+.chip.click.on{background:var(--acc);color:#fff}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:var(--gap);margin-bottom:12px;flex-wrap:wrap}
+.topbar select{width:auto}
+dialog{border:0;border-radius:12px;padding:0;background:var(--surface);color:var(--text);max-width:min(1150px,96vw);width:100%}
+dialog::backdrop{background:#000c}
+.dlg{display:grid;grid-template-columns:1.3fr 1fr;gap:var(--m);padding:var(--m)}
+@media (max-width:860px){.dlg{grid-template-columns:1fr}}
+.dlg img{width:100%;border-radius:var(--r);max-height:78vh;object-fit:contain;background:var(--bg)}
+.empty{padding:48px;text-align:center;color:var(--dim)}
+.banner{background:var(--surface);border-left:4px solid var(--amber);border-radius:var(--r);padding:12px var(--m);margin-bottom:var(--m);display:flex;gap:var(--m);align-items:center;flex-wrap:wrap}
+.banner p{margin:0;flex:1;min-width:240px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--hi);padding:10px 18px;border-radius:var(--r);box-shadow:0 6px 24px #0008;opacity:0;transition:opacity .15s;pointer-events:none;z-index:50}
+#toast.show{opacity:1}#toast.bad{background:var(--err)}
+</style>
+</head>
+<body>
+<header>
+  <h1>AUTO<span>·</span>BILDARCHIV</h1>
+  <div class="tabs"><button id="tabUp" class="on">Einsortieren</button><button id="tabSearch">Suchen</button></div>
+  <div class="status" id="status" title=""><span class="dot" id="dot"></span><span id="statusTxt">…</span></div>
+  <button id="libBtn">Mediathek</button>
+</header>
+
+<main>
+<div class="banner hidden" id="banner"></div>
+
+<section id="viewUp">
+  <div id="drop"><b>Bilder hier reinziehen</b>oder klicken · mehrere gleichzeitig · Strg/⌘+V fügt aus der Zwischenablage ein</div>
+  <input type="file" id="fileIn" accept="image/*" multiple class="hidden">
+  <div class="upwrap">
+    <div class="card">
+      <div class="topbar"><span class="lbl" style="margin:0">Warteschlange · <span id="qCount">0</span></span><button id="selAll">Alle an/aus</button></div>
+      <div class="queue" id="queue"></div>
+      <p class="hint" id="qHint">Ausgewählte Bilder (oranger Rahmen) bekommen die Angaben rechts. Bilder, die schon im Archiv sind, werden erkannt und nicht doppelt gespeichert. Größere Bilder werden automatisch auf 1600×1200 verkleinert.</p>
+    </div>
+    <div class="card">
+      <div class="form" id="tagForm"></div>
+      <div class="row" style="margin-top:var(--m)">
+        <button class="btn pri" id="saveBtn" disabled>Speichern</button>
+        <span class="hint">Enter speichert · Angaben bleiben für die nächsten Bilder stehen</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="viewSearch" class="hidden">
+  <div class="search">
+    <div class="card filters">
+      <div><span class="lbl">Freitext</span><input id="fText" placeholder="z. B. 330i rot touring"></div>
+      <div><span class="lbl">Marke</span><select id="fBrand"></select></div>
+      <div><span class="lbl">Modell</span><select id="fModel"></select></div>
+      <div><span class="lbl">Generation</span><select id="fGen"></select></div>
+      <div><span class="lbl">Facelift</span><div class="seg" id="fFl"><button data-v="" class="on">Alle</button><button data-v="vfl">Vor-FL</button><button data-v="fl">Facelift</button></div></div>
+      <div><span class="lbl">Gebaut im Jahr</span><input id="fYear" type="number" min="1900" max="2100" placeholder="z. B. 2017"></div>
+      <div><span class="lbl">Ansicht</span><select id="fView"></select></div>
+      <div><span class="lbl">Spezifikationen (alle müssen passen)</span><div class="chips" id="fSpecs"></div></div>
+      <label class="chk"><input type="checkbox" id="fVerified"> Nur geprüfte Angaben</label>
+      <button id="fReset">Filter zurücksetzen</button>
+    </div>
+    <div>
+      <div class="topbar"><span class="lbl" style="margin:0" id="count"></span>
+        <select id="sort"><option value="name">Marke · Modell · Baujahr</option><option value="yearDesc">Baujahr, neueste zuerst</option><option value="added">Zuletzt hinzugefügt</option></select></div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<dialog id="dlg"><div class="dlg">
+  <div><img id="dImg" alt=""></div>
+  <div>
+    <div class="form" id="editForm"></div>
+    <div class="row" style="margin-top:var(--m)">
+      <button class="btn pri" id="dSave">Speichern</button>
+      <button id="dDl">Herunterladen</button>
+      <button class="btn danger" id="dDel">Löschen</button>
+      <button id="dClose">Schließen</button>
+    </div>
+    <p class="hint" id="dInfo"></p>
+  </div>
+</div></dialog>
+
+<dialog id="libDlg"><div style="padding:var(--m);max-width:640px">
+  <h2 style="margin:0 0 8px;font-size:26px">Mediathek</h2>
+  <p class="hint" id="libInfo"></p>
+  <div class="row" style="margin:var(--m) 0">
+    <button class="btn pri" id="libNew">Neue Mediathek anlegen …</button>
+    <button id="libOpen">Vorhandene öffnen …</button>
+  </div>
+  <div class="row"><button id="libReindex">Neu einlesen</button><button id="libMigrate" class="hidden">Browser-Bilder in Mediathek übernehmen</button>
+    <button id="exportBtn">Backup-Datei speichern</button><button id="importBtn">Backup-Datei laden</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
+  <p class="hint" style="margin-top:var(--m)">In der Mediathek liegt alles: jedes Bild mit einer Begleitdatei (<code>.auto.json</code>), abgelegt nach Datum. Die Begleitdateien sind die Wahrheit, die Suche wird daraus jedes Mal neu aufgebaut. Ordner auf der SSD wählen, dann kann man sie an jeden Rechner anstecken.</p>
+  <div class="row" style="justify-content:flex-end"><button id="libClose">Schließen</button></div>
+</div></dialog>
+
+<div id="toast"></div>
+<datalist id="dlBrand"></datalist><datalist id="dlModel"></datalist><datalist id="dlGen"></datalist><datalist id="dlBody"></datalist>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
+const SCHEMA=1, SIDE='.auto.json';
+const VIEWS=['','Front','Front schräg','Seite','Heck','Heck schräg','Innenraum','Cockpit','Felge/Detail','Motor','Sonstiges'];
+function toast(msg,bad){const t=$('toast');t.textContent=msg;t.className='show'+(bad?' bad':'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='',bad?6000:3000)}
+
+// ---------- Fingerabdruck (wie Loomn: SHA-256) ----------
+async function sha256(blob){const h=await crypto.subtle.digest('SHA-256',await blob.arrayBuffer());return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+function imgSize(blob){return new Promise(r=>{const u=URL.createObjectURL(blob),i=new Image();i.onload=()=>{r({width:i.naturalWidth,height:i.naturalHeight});URL.revokeObjectURL(u)};i.onerror=()=>{r({});URL.revokeObjectURL(u)};i.src=u})}
+
+// ---------- Dateinamen (wie Loomn Naming) ----------
+const pad=n=>String(n).padStart(2,'0');
+function clean(s,max=24){let o=String(s||'').replace(/[\/\\:?*"<>|_.,;'`´#%&{}\[\]()!$@=+~^\n\r\t]/g,' ').trim().split(/\s+/).join('-');if(o.length>max)o=o.slice(0,max);return o||'x'}
+function dayFolder(d){return ['Bilder',d.getFullYear(),`${d.getFullYear()}-${pad(d.getMonth()+1)}`]}
+function fileName(r,ext){const d=new Date(r.importedAt);const st=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+  const fl=r.facelift==='fl'?'FL':r.facelift==='vfl'?'VFL':'';
+  return [st,clean(r.brand,16),clean(r.model,20),r.gen?clean(r.gen,12):'',fl,r.id.replace(/-/g,'').slice(0,4)].filter(Boolean).join('_')+'.'+ext}
+const extOf=n=>((n||'').match(/\.([a-z0-9]+)$/i)||[,'jpg'])[1].toLowerCase();
+
+// ---------- Datensatz (Begleitdatei) ----------
+// Unbekannte Felder bleiben beim Speichern erhalten (wie Loomn), interne Felder beginnen mit _.
+function sidecarJSON(r){const o={};for(const k in r)if(!k.startsWith('_'))o[k]=r[k];return JSON.stringify(o,null,2)}
+function normalize(o){return Object.assign({schema:SCHEMA,brand:'',model:'',gen:'',body:'',facelift:'',from:null,to:null,view:'',color:'',specs:[],notes:'',verified:false},o,{specs:Array.isArray(o.specs)?o.specs:[]})}
+
+// ---------- Einstellungen + Browser-Speicher (IndexedDB) ----------
+let idb;
+function openIDB(){return new Promise((res,rej)=>{const r=indexedDB.open('autoBildarchiv',2);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('cars'))d.createObjectStore('cars',{keyPath:'id'});if(!d.objectStoreNames.contains('settings'))d.createObjectStore('settings')};r.onsuccess=()=>{idb=r.result;res()};r.onerror=()=>rej(r.error)})}
+const req=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const os=(s,m='readonly')=>idb.transaction(s,m).objectStore(s);
+const setting=(k,v)=>v===undefined?req(os('settings').get(k)):req(os('settings','readwrite').put(v,k));
+
+const BrowserStore={mode:'browser',name:'Dieser Browser',
+  async list(){return (await req(os('cars').getAll())).map(c=>{const{blob,...r}=c;r._blob=blob;return normalize(r)})},
+  async add(r,blob){await req(os('cars','readwrite').put({...JSON.parse(sidecarJSON(r)),blob}));r._blob=blob},
+  async update(r){await req(os('cars','readwrite').put({...JSON.parse(sidecarJSON(r)),blob:r._blob}))},
+  async remove(r){await req(os('cars','readwrite').delete(r.id))},
+  async blob(r){return r._blob},
+  async saveCatalog(c){await setting('catalog',c)},async loadCatalog(){return (await setting('catalog'))||{}}};
+
+// ---------- Mediathek-Ordner (File System Access, wie Loomn: Begleitdatei = Wahrheit) ----------
+function DirStore(root,meta){return{mode:'dir',name:root.name,root,meta,
+  async dir(parts,create=true){let d=root;for(const p of parts)d=await d.getDirectoryHandle(String(p),{create});return d},
+  async writeFile(dir,name,data){const fh=await dir.getFileHandle(name,{create:true});const w=await fh.createWritable();await w.write(data);await w.close();return fh},
+  async list(){const out=[];let bilder;try{bilder=await root.getDirectoryHandle('Bilder')}catch{return out}
+    const walk=async(d,rel)=>{for await(const [n,h] of d.entries()){
+      if(h.kind==='directory'){await walk(h,[...rel,n]);continue}
+      if(!n.endsWith(SIDE))continue;
+      try{const o=JSON.parse(await (await h.getFile()).text());if(!o.id||!o.file)continue;const r=normalize(o);r._dir=d;r._rel=rel.join('/');out.push(r)}catch(e){console.warn('Begleitdatei unlesbar',rel,n,e)}}};
+    await walk(bilder,['Bilder']);return out},
+  async add(r,blob){const parts=dayFolder(new Date(r.importedAt));const d=await this.dir(parts);
+    r.file=fileName(r,extOf(r.originalName));
+    await this.writeFile(d,r.file,blob);
+    // geprüfte Kopie: zurücklesen und Fingerabdruck vergleichen
+    const back=await (await d.getFileHandle(r.file)).getFile();
+    if(back.size!==blob.size||await sha256(back)!==r.sha256){await d.removeEntry(r.file).catch(()=>{});throw new Error('Kopie fehlerhaft (Prüfsumme stimmt nicht)')}
+    await this.writeFile(d,r.file+SIDE,sidecarJSON(r));r._dir=d;r._rel=parts.join('/')},
+  async update(r){// Dateiname folgt den Angaben (Datum und Kennung bleiben), wenn der Browser Umbenennen kann
+    const want=fileName(r,extOf(r.file));
+    if(want!==r.file){try{const fh=await r._dir.getFileHandle(r.file);if(fh.move){await fh.move(want);await r._dir.removeEntry(r.file+SIDE).catch(()=>{});r.file=want}}catch(e){console.warn('Umbenennen nicht möglich',e)}}
+    await this.writeFile(r._dir,r.file+SIDE,sidecarJSON(r))},
+  async remove(r){// nicht endgültig löschen: in den Papierkorb der Mediathek
+    const pk=await this.dir(['Archivdaten','Papierkorb']);const b=await this.blob(r);
+    await this.writeFile(pk,r.file,b);await this.writeFile(pk,r.file+SIDE,sidecarJSON({...r,deletedAt:new Date().toISOString()}));
+    await r._dir.removeEntry(r.file);await r._dir.removeEntry(r.file+SIDE)},
+  async blob(r){return (await r._dir.getFileHandle(r.file)).getFile()},
+  async saveCatalog(c){await this.writeFile(await this.dir(['Archivdaten']),'katalog.json',JSON.stringify(c,null,2))},
+  async loadCatalog(){try{return JSON.parse(await (await (await (await this.dir(['Archivdaten'],false)).getFileHandle('katalog.json')).getFile()).text())}catch{return {}}}
+}}
+const canDir=!!window.showDirectoryPicker;
+
+async function readMeta(dir){try{return JSON.parse(await (await (await dir.getFileHandle('mediathek.auto.json')).getFile()).text())}catch{return null}}
+async function createLibrary(parent){
+  let root=parent;if(!(await readMeta(parent))){let has=false;for await(const _ of parent.keys()){has=true;break}if(has)root=await parent.getDirectoryHandle('Auto Bildarchiv',{create:true})}
+  let meta=await readMeta(root);
+  if(!meta){meta={app:'auto-bildarchiv',id:uid(),schema:SCHEMA,created:new Date().toISOString()};
+    const s=DirStore(root,meta);await s.writeFile(root,'mediathek.auto.json',JSON.stringify(meta,null,2));
+    await s.writeFile(root,'LIESMICH.txt','Auto-Bildarchiv – Mediathek\n\nBilder/JJJJ/JJJJ-MM/  Bilder mit Begleitdatei (.auto.json). Die Begleitdatei enthält Marke, Modell, Generation, Facelift, Baujahr usw. und ist die Wahrheit.\nArchivdaten/katalog.json  letzte Angaben\nArchivdaten/Papierkorb/  gelöschte Bilder (von Hand leeren)\n\nNichts von Hand umbenennen oder verschieben. Zum Öffnen: Auto-Bildarchiv › Mediathek › Vorhandene öffnen.\n');
+    await s.dir(['Bilder']);await s.dir(['Archivdaten'])}
+  return {root,meta}}
+
+// ---------- Zustand ----------
+let store=BrowserStore, cars=[], queue=[], catalog={};
+const urls=new Map();
+async function urlFor(r){if(!urls.has(r.id))urls.set(r.id,URL.createObjectURL(await store.blob(r)));return urls.get(r.id)}
+function dropUrls(){urls.forEach(u=>URL.revokeObjectURL(u));urls.clear()}
+
+async function useStore(s){store=s;dropUrls();cars=await s.list();catalog=await s.loadCatalog();
+  if(catalog.lastInput)fillForm('u_',{...catalog.lastInput,verified:false});
+  updateStatus();refreshLists();fillFilters();render();queue.forEach(markDup);renderQueue()}
+function updateStatus(){const dir=store.mode==='dir';$('dot').className='dot '+(dir?'on':'warn');
+  $('statusTxt').textContent=dir?`Mediathek: ${store.name} · ${cars.length} Bilder`:`Nur im Browser · ${cars.length} Bilder`;
+  $('status').title=dir?'Bilder liegen im Mediathek-Ordner':'Bilder liegen nur in diesem Browser. Unter „Mediathek“ einen Ordner anlegen.';}
+
+// ---------- Formular ----------
+function formHTML(p){return `
+ <div><span class="lbl">Marke *</span><input id="${p}brand" list="dlBrand" placeholder="z. B. BMW" autocomplete="off"></div>
+ <div><span class="lbl">Modell *</span><input id="${p}model" list="dlModel" placeholder="z. B. 3er" autocomplete="off"></div>
+ <div><span class="lbl">Generation / Baureihe</span><input id="${p}gen" list="dlGen" placeholder="z. B. F30, W205, 8V" autocomplete="off"></div>
+ <div><span class="lbl">Karosserie</span><input id="${p}body" list="dlBody" placeholder="z. B. Limousine, Touring" autocomplete="off"></div>
+ <div class="full"><span class="lbl">Facelift</span><div class="seg" id="${p}fl"><button type="button" data-v="vfl">Vor-Facelift</button><button type="button" data-v="fl">Facelift</button><button type="button" data-v="" class="on">Unbekannt</button></div></div>
+ <div><span class="lbl">Baujahr von</span><input id="${p}from" type="number" min="1900" max="2100" placeholder="z. B. 2015"></div>
+ <div><span class="lbl">Baujahr bis</span><input id="${p}to" type="number" min="1900" max="2100" placeholder="leer = bis heute"></div>
+ <div><span class="lbl">Ansicht</span><select id="${p}view">${VIEWS.map(v=>`<option value="${v}">${v||'–'}</option>`).join('')}</select></div>
+ <div><span class="lbl">Farbe</span><input id="${p}color" placeholder="z. B. Alpinweiß"></div>
+ <div class="full"><span class="lbl">Weitere Spezifikationen · mit Komma trennen</span><input id="${p}specs" placeholder="z. B. M-Paket, 330i, xDrive, LED"></div>
+ <div class="full"><span class="lbl">Notizen / Quelle</span><textarea id="${p}notes" placeholder="z. B. Quelle, woran man das Facelift erkennt …"></textarea></div>
+ <label class="chk full"><input type="checkbox" id="${p}verified"> Angaben geprüft (Modell, Facelift und Baujahr stimmen sicher)</label>`}
+function wireSeg(el,cb){el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;[...el.children].forEach(x=>x.classList.toggle('on',x===b));cb&&cb(b.dataset.v)})}
+const segVal=el=>el.querySelector('.on')?.dataset.v??'';
+const segSet=(el,v)=>[...el.children].forEach(x=>x.classList.toggle('on',x.dataset.v===(v??'')));
+function readForm(p){const n=v=>v===''?null:+v;return{brand:$(p+'brand').value.trim(),model:$(p+'model').value.trim(),gen:$(p+'gen').value.trim(),body:$(p+'body').value.trim(),
+  facelift:segVal($(p+'fl')),from:n($(p+'from').value),to:n($(p+'to').value),view:$(p+'view').value,color:$(p+'color').value.trim(),
+  specs:[...new Set($(p+'specs').value.split(',').map(s=>s.trim()).filter(Boolean))],notes:$(p+'notes').value.trim(),verified:$(p+'verified').checked}}
+function fillForm(p,c){['brand','model','gen','body','view','color','notes'].forEach(k=>$(p+k).value=c[k]||'');
+  $(p+'from').value=c.from??'';$(p+'to').value=c.to??'';$(p+'specs').value=(c.specs||[]).join(', ');$(p+'verified').checked=!!c.verified;segSet($(p+'fl'),c.facelift)}
+function validate(d){if(!d.brand||!d.model)return'Marke und Modell sind Pflicht.';if(d.from&&d.to&&d.to<d.from)return'„Baujahr bis“ liegt vor „von“.';return''}
+$('tagForm').innerHTML=formHTML('u_');wireSeg($('u_fl'));
+$('editForm').innerHTML=formHTML('e_');wireSeg($('e_fl'));
+
+const uniq=a=>[...new Set(a.filter(Boolean))].sort((x,y)=>x.localeCompare(y,'de'));
+function refreshLists(){const opt=a=>a.map(v=>`<option value="${esc(v)}">`).join('');
+  $('dlBrand').innerHTML=opt(uniq(cars.map(c=>c.brand)));
+  const b=$('u_brand').value.trim();$('dlModel').innerHTML=opt(uniq(cars.filter(c=>!b||c.brand===b).map(c=>c.model)));
+  const m=$('u_model').value.trim();$('dlGen').innerHTML=opt(uniq(cars.filter(c=>(!b||c.brand===b)&&(!m||c.model===m)).map(c=>c.gen)));
+  $('dlBody').innerHTML=opt(uniq(['Limousine','Kombi','Touring','Avant','Coupé','Cabrio','SUV','Schrägheck','Van','Pick-up',...cars.map(c=>c.body)]))}
+['u_brand','u_model'].forEach(i=>$(i).addEventListener('change',refreshLists));
+
+// ---------- Einsortieren ----------
+const drop=$('drop'),fileIn=$('fileIn');
+drop.onclick=()=>fileIn.click();
+fileIn.onchange=()=>{addFiles(fileIn.files);fileIn.value=''};
+['dragenter','dragover'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',ev=>addFiles(ev.dataTransfer.files));
+document.addEventListener('paste',ev=>{if($('viewUp').classList.contains('hidden'))return;const f=[...(ev.clipboardData?.items||[])].filter(i=>i.type.startsWith('image/')).map(i=>i.getAsFile());if(f.length)addFiles(f)});
+function markDup(q){if(!q.sha)return;const c=cars.find(c=>c.sha256===q.sha||(c.origSha256&&c.origSha256===q.origSha));const twin=queue.find(o=>o!==q&&o.sha===q.sha&&queue.indexOf(o)<queue.indexOf(q));
+  q.dup=c?`schon drin: ${c.brand} ${c.model}`:twin?'doppelt in Liste':'';if(q.dup)q.sel=false}
+// Größere Bilder auf 1600×1200 verkleinern (Hochformat 1200×1600), Seitenverhältnis bleibt
+const MAX_W=1600,MAX_H=1200;
+async function shrink(file){
+  let bmp;try{bmp=await createImageBitmap(file)}catch{return {file,resized:false}}
+  const {width:w,height:h}=bmp,portrait=h>w,bw=portrait?MAX_H:MAX_W,bh=portrait?MAX_W:MAX_H;
+  const k=Math.min(bw/w,bh/h);if(k>=1){bmp.close();return {file,resized:false}}
+  const c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);
+  const g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(bmp,0,0,c.width,c.height);bmp.close();
+  const png=file.type==='image/png',type=png?'image/png':'image/jpeg';
+  const blob=await new Promise(r=>c.toBlob(r,type,0.9));if(!blob)return {file,resized:false};
+  const name=file.name.replace(/\.[^.]+$/,'')+(png?'.png':'.jpg');
+  return {file:new File([blob],name,{type,lastModified:file.lastModified}),resized:`${w}×${h} → ${c.width}×${c.height}`}}
+async function addFiles(files){const add=[...files].filter(f=>f.type.startsWith('image/')).map(f=>({qid:uid(),file:f,url:URL.createObjectURL(f),sel:true,sha:null,dup:''}));
+  queue.push(...add);renderQueue();
+  for(const q of add){q.origSha=await sha256(q.file);const s=await shrink(q.file);
+    if(s.resized){URL.revokeObjectURL(q.url);q.file=s.file;q.url=URL.createObjectURL(s.file);q.resized=s.resized}
+    q.sha=s.resized?await sha256(q.file):q.origSha;markDup(q);renderQueue()}}
+function renderQueue(){$('qCount').textContent=queue.length;
+  $('queue').innerHTML=queue.map(q=>`<div class="q ${q.sel?'sel':''}" data-q="${q.qid}" title="${esc(q.file.name)}${q.resized?' · verkleinert '+q.resized:''}"><img src="${q.url}" alt="">${q.sha?'':'<div class="wait">prüfe …</div>'}${q.dup?`<div class="dup">${esc(q.dup)}</div>`:q.resized?`<div class="dup" style="background:#000b">verkleinert</div>`:''}<button class="x" data-x="${q.qid}" title="Entfernen">×</button></div>`).join('');
+  const n=queue.filter(q=>q.sel&&!q.dup).length;$('saveBtn').disabled=!n||queue.some(q=>q.sel&&!q.sha);$('saveBtn').textContent=n>1?`${n} Bilder speichern`:'Speichern'}
+$('queue').onclick=e=>{const x=e.target.closest('[data-x]');if(x){const i=queue.findIndex(q=>q.qid===x.dataset.x);URL.revokeObjectURL(queue[i].url);queue.splice(i,1);return renderQueue()}
+  const el=e.target.closest('[data-q]');if(el){const q=queue.find(z=>z.qid===el.dataset.q);if(q.dup)return toast(q.dup+' – wird nicht doppelt gespeichert',true);q.sel=!q.sel;renderQueue()}};
+$('selAll').onclick=()=>{const ok=queue.filter(q=>!q.dup);const all=ok.every(q=>q.sel);ok.forEach(q=>q.sel=!all);renderQueue()};
+$('viewUp').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'&&!$('saveBtn').disabled){e.preventDefault();$('saveBtn').click()}});
+let saving=false;
+$('saveBtn').onclick=async()=>{if(saving)return;const d=readForm('u_'),err=validate(d);if(err)return toast(err,true);
+  saving=true;$('saveBtn').disabled=true;let ok=0;
+  try{for(const q of queue.filter(q=>q.sel&&!q.dup&&q.sha)){
+      if(cars.some(c=>c.sha256===q.sha||(c.origSha256&&c.origSha256===q.origSha))){q.dup='schon drin';continue}
+      const r=normalize({id:uid(),file:'',originalName:q.file.name,sha256:q.sha,size:q.file.size,...(q.resized?{origSha256:q.origSha,resizedFrom:q.resized}:{}),importedAt:new Date().toISOString(),...await imgSize(q.file),...d});
+      try{await store.add(r,q.file);cars.push(r);q.done=true;ok++}catch(e){toast(`${q.file.name}: ${e.message}`,true)}}
+    queue.filter(q=>q.done).forEach(q=>URL.revokeObjectURL(q.url));queue=queue.filter(q=>!q.done);
+    catalog.lastInput={...d,verified:false};await store.saveCatalog(catalog).catch(()=>{});
+  }finally{saving=false;queue.forEach(markDup);renderQueue();refreshLists();updateStatus()}
+  if(ok)toast(`✓ ${ok} gespeichert`)};
+
+// ---------- Suche (wie Loomn Query: Gruppen werden kombiniert, Spezifikationen müssen alle passen) ----------
+let fFl='',fSpecs=new Set();wireSeg($('fFl'),v=>{fFl=v;render()});
+['fText','fYear'].forEach(i=>$(i).oninput=render);
+['fBrand','fModel','fGen','fView'].forEach(i=>$(i).onchange=()=>{fillFilters();render()});
+$('fVerified').onchange=render;$('sort').onchange=render;
+$('fSpecs').onclick=e=>{const c=e.target.closest('[data-s]');if(!c)return;const s=c.dataset.s;fSpecs.has(s)?fSpecs.delete(s):fSpecs.add(s);fillFilters();render()};
+$('fReset').onclick=()=>{['fText','fYear','fBrand','fModel','fGen','fView'].forEach(i=>$(i).value='');$('fVerified').checked=false;fFl='';segSet($('fFl'),'');fSpecs.clear();fillFilters();render()};
+function fillFilters(){
+  const set=(id,vals,label)=>{const el=$(id),cur=el.value,u=uniq(vals);el.innerHTML=`<option value="">${label}</option>`+u.map(v=>`<option ${v===cur?'selected':''}>${esc(v)}</option>`).join('');if(!u.includes(cur))el.value=''};
+  set('fBrand',cars.map(c=>c.brand),'Alle Marken');
+  const m=cars.filter(c=>!$('fBrand').value||c.brand===$('fBrand').value);set('fModel',m.map(c=>c.model),'Alle Modelle');
+  const g=m.filter(c=>!$('fModel').value||c.model===$('fModel').value);set('fGen',g.map(c=>c.gen),'Alle Generationen');
+  set('fView',cars.map(c=>c.view),'Alle Ansichten');
+  const specs=uniq(g.flatMap(c=>c.specs));[...fSpecs].forEach(s=>{if(!specs.includes(s))specs.push(s)});
+  $('fSpecs').innerHTML=specs.length?specs.map(s=>`<span class="chip click ${fSpecs.has(s)?'on':''}" data-s="${esc(s)}">${esc(s)}</span>`).join(''):'<span class="hint">noch keine</span>'}
+const flName=f=>f==='fl'?'facelift fl lci':f==='vfl'?'vor-facelift vfl':'';
+function matches(c){
+  if($('fBrand').value&&c.brand!==$('fBrand').value)return false;
+  if($('fModel').value&&c.model!==$('fModel').value)return false;
+  if($('fGen').value&&c.gen!==$('fGen').value)return false;
+  if($('fView').value&&c.view!==$('fView').value)return false;
+  if(fFl&&c.facelift!==fFl)return false;
+  if($('fVerified').checked&&!c.verified)return false;
+  if(fSpecs.size){const have=new Set(c.specs.map(s=>s.toLowerCase()));for(const s of fSpecs)if(!have.has(s.toLowerCase()))return false}
+  const y=+$('fYear').value;if(y){if(!c.from||y<c.from||y>(c.to||9999))return false}
+  const words=$('fText').value.toLowerCase().split(/\s+/).filter(Boolean);
+  if(words.length){const hay=[c.brand,c.model,c.gen,c.body,c.color,c.view,c.notes,c.originalName,...c.specs,flName(c.facelift)].join(' ').toLowerCase();if(!words.every(w=>hay.includes(w)))return false}
+  return true}
+const SORTS={name:(a,b)=>(a.brand+' '+a.model).localeCompare(b.brand+' '+b.model,'de')||(a.from||0)-(b.from||0),
+  yearDesc:(a,b)=>(b.from||0)-(a.from||0),added:(a,b)=>String(b.importedAt).localeCompare(String(a.importedAt))};
+const years=c=>c.from?`${c.from}–${c.to||'heute'}`:'Baujahr ?';
+const flChip=c=>c.facelift==='fl'?'<span class="chip fl">Facelift</span>':c.facelift==='vfl'?'<span class="chip">Vor-Facelift</span>':'<span class="chip warn">FL ?</span>';
+let renderToken=0;
+function render(){const tok=++renderToken;
+  const list=cars.filter(matches).sort(SORTS[$('sort').value]);
+  const active=[$('fText').value.trim(),$('fBrand').value,$('fModel').value,$('fGen').value,$('fView').value,fFl,$('fYear').value,fSpecs.size,$('fVerified').checked].filter(Boolean).length;
+  $('fReset').textContent=active?`Filter zurücksetzen (${active})`:'Filter zurücksetzen';
+  $('count').textContent=`${list.length} von ${cars.length} Bildern`;
+  $('grid').innerHTML=list.length?list.map(c=>`<div class="item" data-id="${c.id}"><img class="im" data-img="${c.id}" alt="">
+    <div class="meta"><div class="t">${esc(c.brand)} ${esc(c.model)}</div>
+    <div class="s">${[c.gen,years(c),c.body,c.view].filter(Boolean).map(esc).join(' · ')}</div>
+    <div class="chips">${flChip(c)}${c.verified?'<span class="chip ok">✓ geprüft</span>':'<span class="chip warn">ungeprüft</span>'}${c.specs.slice(0,3).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div></div></div>`).join('')
+    :`<div class="empty">${cars.length?'Keine Treffer für diese Filter.':'Noch keine Bilder. Unter „Einsortieren“ hinzufügen.'}</div>`;
+  const ob=new IntersectionObserver(es=>es.forEach(async e=>{if(!e.isIntersecting)return;ob.unobserve(e.target);const c=cars.find(x=>x.id===e.target.dataset.img);
+    try{const u=await urlFor(c);if(tok===renderToken||document.contains(e.target))e.target.src=u}catch{e.target.alt='Datei fehlt'}}),{rootMargin:'400px'});
+  document.querySelectorAll('[data-img]').forEach(i=>ob.observe(i))}
+$('grid').onclick=e=>{const it=e.target.closest('[data-id]');if(it)openDlg(it.dataset.id)};
+
+// ---------- Detail ----------
+let cur=null;
+async function openDlg(id){cur=cars.find(c=>c.id===id);fillForm('e_',cur);$('dImg').src='';$('dlg').showModal();
+  $('dInfo').textContent=`${cur.originalName||''}${cur.width?` · ${cur.width}×${cur.height}`:''}${cur.resizedFrom?` (verkleinert von ${cur.resizedFrom.split(' → ')[0]})`:''} · hinzugefügt ${new Date(cur.importedAt).toLocaleDateString('de-DE')}${cur.editedAt?' · geändert '+new Date(cur.editedAt).toLocaleDateString('de-DE'):''}${cur._rel?' · '+cur._rel+'/'+cur.file:''}`;
+  try{$('dImg').src=await urlFor(cur)}catch{toast('Bilddatei fehlt in der Mediathek',true)}}
+$('dClose').onclick=()=>$('dlg').close();
+$('dSave').onclick=async()=>{const d=readForm('e_'),err=validate(d);if(err)return toast(err,true);
+  const before={...cur};Object.assign(cur,d,{editedAt:new Date().toISOString()});
+  try{await store.update(cur)}catch(e){Object.assign(cur,before);return toast('Speichern fehlgeschlagen: '+e.message,true)}
+  refreshLists();fillFilters();render();$('dlg').close();toast('✓ Geändert')};
+$('dDel').onclick=async()=>{if(!confirm(store.mode==='dir'?'Bild in den Papierkorb der Mediathek legen?':'Bild wirklich löschen?'))return;
+  try{await store.remove(cur)}catch(e){return toast('Löschen fehlgeschlagen: '+e.message,true)}
+  URL.revokeObjectURL(urls.get(cur.id));urls.delete(cur.id);cars=cars.filter(c=>c!==cur);refreshLists();fillFilters();render();updateStatus();$('dlg').close()};
+$('dDl').onclick=async()=>{const a=document.createElement('a');a.href=await urlFor(cur);a.download=fileName(cur,extOf(cur.file||cur.originalName)).replace(/^\d{4}-\d\d-\d\d_\d{4}_/,'');a.click()};
+
+// ---------- Tabs ----------
+function tab(s){$('viewUp').classList.toggle('hidden',s);$('viewSearch').classList.toggle('hidden',!s);$('tabUp').classList.toggle('on',!s);$('tabSearch').classList.toggle('on',s);if(s){fillFilters();render()}}
+$('tabUp').onclick=()=>tab(false);$('tabSearch').onclick=()=>tab(true);
+
+// ---------- Mediathek ----------
+async function openDirLibrary(handle,{create}){
+  let root=handle,meta=await readMeta(handle);
+  if(!meta){if(!create){if(!confirm(`In „${handle.name}“ ist keine Mediathek. Hier eine neue anlegen?`))return false}
+    ({root,meta}=await createLibrary(handle))}
+  try{await setting('libHandle',root)}catch(e){console.warn('Ordner kann nicht gemerkt werden',e)}await useStore(DirStore(root,meta));
+  const inBrowser=(await BrowserStore.list()).length;$('libMigrate').classList.toggle('hidden',!inBrowser);
+  $('libMigrate').textContent=`${inBrowser} Browser-Bilder in Mediathek übernehmen`;
+  $('banner').classList.add('hidden');toast(`Mediathek „${root.name}“ geöffnet · ${cars.length} Bilder`);return true}
+async function pickDir(create){try{const h=await showDirectoryPicker({id:'autobildarchiv',mode:'readwrite'});if(await openDirLibrary(h,{create}))$('libDlg').close()}catch(e){if(e.name!=='AbortError')toast(e.message,true)}}
+$('libBtn').onclick=async()=>{
+  $('libInfo').innerHTML=store.mode==='dir'?`Geöffnet: <b>${esc(store.name)}</b> · ${cars.length} Bilder`:
+    canDir?'Gerade liegen die Bilder nur in diesem Browser. Lege eine Mediathek in einem Ordner an (z. B. auf der SSD), dann sind sie als normale Dateien gesichert.':
+    'Dieser Browser kann keine Ordner öffnen (geht in Chrome und Edge). Hier bleiben die Bilder im Browser, sichere sie über „Backup-Datei speichern“.';
+  ['libNew','libOpen'].forEach(i=>$(i).classList.toggle('hidden',!canDir));$('libReindex').classList.toggle('hidden',store.mode!=='dir');
+  if(store.mode!=='dir')$('libMigrate').classList.add('hidden');$('libDlg').showModal()};
+$('libClose').onclick=()=>$('libDlg').close();
+$('libNew').onclick=()=>pickDir(true);$('libOpen').onclick=()=>pickDir(false);
+$('libReindex').onclick=async()=>{await useStore(store);toast(`Neu eingelesen · ${cars.length} Bilder`)};
+$('libMigrate').onclick=async()=>{const list=await BrowserStore.list();let n=0;
+  for(const r of list){if(cars.some(c=>c.sha256&&c.sha256===r.sha256)||cars.some(c=>c.id===r.id)){await BrowserStore.remove(r);continue}
+    const blob=r._blob;delete r._blob;if(!r.sha256)r.sha256=await sha256(blob);
+    try{await store.add(r,blob);cars.push(r);await BrowserStore.remove(r);n++}catch(e){toast(e.message,true)}}
+  $('libMigrate').classList.add('hidden');refreshLists();fillFilters();render();updateStatus();toast(`✓ ${n} Bilder übernommen`)};
+
+// ---------- Backup-Datei (für Browser ohne Ordner-Zugriff) ----------
+const b2d=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
+$('exportBtn').onclick=async()=>{const out=[];for(const c of cars)out.push({...JSON.parse(sidecarJSON(c)),image:await b2d(await store.blob(c))});
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({app:'auto-bildarchiv',schema:SCHEMA,cars:out})],{type:'application/json'}));
+  a.download=`auto-bildarchiv-backup-${new Date().toISOString().slice(0,10)}.json`;a.click()};
+$('importBtn').onclick=()=>$('importFile').click();
+$('importFile').onchange=async()=>{const f=$('importFile').files[0];if(!f)return;try{const data=JSON.parse(await f.text());let n=0;
+  for(const c of data.cars||[]){const{image,...rest}=c;const blob=await (await fetch(image)).blob();const r=normalize(rest);if(!r.sha256)r.sha256=await sha256(blob);
+    if(cars.some(x=>x.id===r.id||x.sha256===r.sha256))continue;r.importedAt=r.importedAt||r.added||new Date().toISOString();r.originalName=r.originalName||r.fileName||'bild.jpg';
+    await store.add(r,blob);cars.push(r);n++}
+  refreshLists();fillFilters();render();updateStatus();toast(`✓ ${n} Bilder importiert`)}catch(e){toast('Backup unlesbar: '+e.message,true)}$('importFile').value=''};
+
+// ---------- Start ----------
+(async()=>{
+  await openIDB();if(navigator.storage?.persist)navigator.storage.persist();
+  let h=null;try{h=canDir?await setting('libHandle'):null}catch{}
+  if(h){const p=await h.queryPermission({mode:'readwrite'});
+    if(p==='granted'){try{const meta=await readMeta(h);if(meta){await useStore(DirStore(h,meta));return}}catch{}}
+    await useStore(BrowserStore);
+    const b=$('banner');b.innerHTML=`<p>Mediathek <b>${esc(h.name)}</b> ist nicht verbunden (SSD angesteckt?). Bis dahin wird nur im Browser gespeichert.</p><button class="btn pri" id="reconnect">Verbinden</button>`;b.classList.remove('hidden');
+    $('reconnect').onclick=async()=>{try{if(await h.requestPermission({mode:'readwrite'})==='granted'&&await readMeta(h))await openDirLibrary(h,{create:false});else toast('Ordner nicht erreichbar. Unter „Mediathek“ neu wählen.',true)}catch(e){toast(e.message,true)}};
+    return}
+  await useStore(BrowserStore);
+  if(canDir&&!cars.length){const b=$('banner');b.innerHTML=`<p><b>Tipp:</b> Leg zuerst eine Mediathek in einem Ordner an (z. B. auf der SSD). Dann liegen alle Bilder mit ihren Angaben als normale Dateien dort.</p><button class="btn pri" id="bNew">Mediathek anlegen</button>`;b.classList.remove('hidden');$('bNew').onclick=()=>pickDir(true)}
+})().catch(e=>toast('Startfehler: '+e.message,true));
+</script>
+</body>
+</html>
