@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Auto-Bildarchiv</title>
+<meta name="theme-color" content="#141414">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
 /* Schrift eingebettet (SIL OFL): kein Nachladen, kein Springen beim Start, läuft offline */
 @font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:500;font-display:block;src:url(data:font/woff2;base64,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) format("woff2")}
@@ -23,7 +27,8 @@ body{visibility:hidden;margin:0;color:var(--text);font:600 17px/1.3 "Barlow Cond
 header{display:flex;align-items:center;gap:var(--gap);padding:var(--m);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;background:var(--bg);flex-wrap:wrap}
 header h1{font-size:28px;font-weight:700;margin:0 auto 0 0;letter-spacing:.5px}
 header h1 span{color:var(--acc)}
-main{padding:var(--m);max-width:1500px;margin:0 auto}
+main{padding:var(--m) var(--m) 140px;max-width:1500px;margin:0 auto}
+html{scroll-padding-bottom:140px}
 .hidden{display:none!important}
 .card{background:var(--surface);border-radius:var(--r);padding:var(--m)}
 button,.btn{height:var(--ctl);padding:0 16px;border-radius:var(--r);border:0;background:var(--hi);color:var(--text);font:inherit;font-size:17px;cursor:pointer;white-space:nowrap}
@@ -176,7 +181,7 @@ dialog::backdrop{background:#000c}
     <button id="libOpen">Vorhandene öffnen …</button>
   </div>
   <div class="row"><button id="libReindex">Neu einlesen</button><button id="libMigrate" class="hidden">Browser-Bilder in Mediathek übernehmen</button>
-    <button id="exportBtn">Backup-Datei speichern</button><button id="importBtn">Backup-Datei laden</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
+    <button id="installBtn" class="hidden">Als App installieren</button><button id="exportBtn">Backup-Datei speichern</button><button id="importBtn">Backup-Datei laden</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
   <p class="hint" style="margin-top:var(--m)">In der Mediathek liegt alles: jedes Bild mit einer Begleitdatei (<code>.auto.json</code>), abgelegt nach Datum. Die Begleitdateien sind die Wahrheit, die Suche wird daraus jedes Mal neu aufgebaut. Lege den Ordner in Google Drive (oder OneDrive/Dropbox), dann haben Mac und Windows dieselbe Mediathek.</p>
   <div class="row" style="justify-content:flex-end"><button id="libClose">Schließen</button></div>
 </div></dialog>
@@ -225,37 +230,61 @@ const BrowserStore={mode:'browser',name:'Dieser Browser',
   async add(r,blob){await req(os('cars','readwrite').put({...JSON.parse(sidecarJSON(r)),blob}));r._blob=blob},
   async update(r){await req(os('cars','readwrite').put({...JSON.parse(sidecarJSON(r)),blob:r._blob}))},
   async remove(r){await req(os('cars','readwrite').delete(r.id))},
-  async blob(r){return r._blob},
-  async saveCatalog(c){await setting('catalog',c)},async loadCatalog(){return (await setting('catalog'))||{}}};
+  async blob(r){return r._blob},async thumb(r){return r._blob}};
 
 // ---------- Mediathek-Ordner (File System Access, wie Loomn: Begleitdatei = Wahrheit) ----------
+const isJunk=n=>n.startsWith('.')||n.startsWith('~$')||n.endsWith('.crswap')||n.endsWith('.tmp');
+const THUMB=480;
+async function makeThumb(blob){const bmp=await createImageBitmap(blob);const k=Math.min(1,THUMB/Math.max(bmp.width,bmp.height));
+  const c=document.createElement('canvas');c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);const g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(bmp,0,0,c.width,c.height);bmp.close();
+  return new Promise(r=>c.toBlob(r,'image/jpeg',0.82))}
 function DirStore(root,meta){return{mode:'dir',name:root.name,root,meta,
   async dir(parts,create=true){let d=root;for(const p of parts)d=await d.getDirectoryHandle(String(p),{create});return d},
   async writeFile(dir,name,data){const fh=await dir.getFileHandle(name,{create:true});const w=await fh.createWritable();await w.write(data);await w.close();return fh},
-  async list(){const out=[];let bilder;try{bilder=await root.getDirectoryHandle('Bilder')}catch{return out}
+  // Einlesen aus den Begleitdateien. Unveränderte Dateien kommen aus einem lokalen Zwischenspeicher (schneller Start auch mit Google Drive).
+  async list(){let bilder;try{bilder=await root.getDirectoryHandle('Bilder')}catch{return []}
+    const ckey='idx:'+meta.id;let cache={};try{cache=(await setting(ckey))||{}}catch{}
+    const next={},byId=new Map();
     const walk=async(d,rel)=>{for await(const [n,h] of d.entries()){
+      if(isJunk(n))continue;
       if(h.kind==='directory'){await walk(h,[...rel,n]);continue}
       if(!n.endsWith(SIDE))continue;
-      try{const o=JSON.parse(await (await h.getFile()).text());if(!o.id||!o.file)continue;const r=normalize(o);r._dir=d;r._rel=rel.join('/');out.push(r)}catch(e){console.warn('Begleitdatei unlesbar',rel,n,e)}}};
-    await walk(bilder,['Bilder']);return out},
+      const key=rel.join('/')+'/'+n;
+      try{const f=await h.getFile();let o;const c=cache[key];
+        if(c&&c.lm===f.lastModified&&c.size===f.size)o=c.rec;else o=JSON.parse(await f.text());
+        if(!o||!o.id||!o.file)continue;next[key]={lm:f.lastModified,size:f.size,rec:o};
+        const r=normalize({...o});r._dir=d;r._rel=rel.join('/');r._key=key;r._stamp=key+'@'+f.lastModified;
+        // Konfliktkopien (z. B. „… (1).auto.json“ von Google Drive): neuere Fassung gewinnt
+        const old=byId.get(r.id);
+        if(!old){r._dupes=[];byId.set(r.id,r)}
+        else if(String(r.editedAt||r.importedAt)>String(old.editedAt||old.importedAt)){r._dupes=[...old._dupes,[old._dir,old._key.split('/').pop()]];byId.set(r.id,r)}
+        else old._dupes.push([d,n])
+      }catch(e){console.warn('Begleitdatei unlesbar',key,e)}}};
+    await walk(bilder,['Bilder']);try{await setting(ckey,next)}catch{}
+    return [...byId.values()]},
   async add(r,blob){const parts=dayFolder(new Date(r.importedAt));const d=await this.dir(parts);
     r.file=fileName(r,extOf(r.originalName));
     await this.writeFile(d,r.file,blob);
     // geprüfte Kopie: zurücklesen und Fingerabdruck vergleichen
     const back=await (await d.getFileHandle(r.file)).getFile();
     if(back.size!==blob.size||await sha256(back)!==r.sha256){await d.removeEntry(r.file).catch(()=>{});throw new Error('Kopie fehlerhaft (Prüfsumme stimmt nicht)')}
-    await this.writeFile(d,r.file+SIDE,sidecarJSON(r));r._dir=d;r._rel=parts.join('/')},
+    await this.writeFile(d,r.file+SIDE,sidecarJSON(r));r._dir=d;r._rel=parts.join('/');r._key=r._rel+'/'+r.file+SIDE;
+    try{await this.writeFile(await this.dir(['Archivdaten','Vorschauen']),r.id+'.jpg',await makeThumb(blob))}catch(e){console.warn('Vorschau',e)}},
   async update(r){// Dateiname folgt den Angaben (Datum und Kennung bleiben), wenn der Browser Umbenennen kann
     const want=fileName(r,extOf(r.file));
-    if(want!==r.file){try{const fh=await r._dir.getFileHandle(r.file);if(fh.move){await fh.move(want);await r._dir.removeEntry(r.file+SIDE).catch(()=>{});r.file=want}}catch(e){console.warn('Umbenennen nicht möglich',e)}}
-    await this.writeFile(r._dir,r.file+SIDE,sidecarJSON(r))},
+    if(want!==r.file){try{const fh=await r._dir.getFileHandle(r.file);if(fh.move){await fh.move(want);await r._dir.removeEntry(r.file+SIDE).catch(()=>{});r.file=want;r._key=r._rel+'/'+want+SIDE}}catch(e){console.warn('Umbenennen nicht möglich',e)}}
+    await this.writeFile(r._dir,r.file+SIDE,sidecarJSON(r));await this.dropDupes(r)},
+  // übrig gebliebene Konfliktkopien derselben Begleitdatei aufräumen
+  async dropDupes(r){for(const [d,n] of r._dupes||[])if(!(d===r._dir&&n===r.file+SIDE))await d.removeEntry(n).catch(()=>{});r._dupes=[]},
   async remove(r){// nicht endgültig löschen: in den Papierkorb der Mediathek
     const pk=await this.dir(['Archivdaten','Papierkorb']);const b=await this.blob(r);
     await this.writeFile(pk,r.file,b);await this.writeFile(pk,r.file+SIDE,sidecarJSON({...r,deletedAt:new Date().toISOString()}));
-    await r._dir.removeEntry(r.file);await r._dir.removeEntry(r.file+SIDE)},
+    await r._dir.removeEntry(r.file).catch(()=>{});await r._dir.removeEntry(r.file+SIDE);await this.dropDupes(r);
+    try{await (await this.dir(['Archivdaten','Vorschauen'],false)).removeEntry(r.id+'.jpg')}catch{}},
   async blob(r){return (await r._dir.getFileHandle(r.file)).getFile()},
-  async saveCatalog(c){await this.writeFile(await this.dir(['Archivdaten']),'katalog.json',JSON.stringify(c,null,2))},
-  async loadCatalog(){try{return JSON.parse(await (await (await (await this.dir(['Archivdaten'],false)).getFileHandle('katalog.json')).getFile()).text())}catch{return {}}}
+  // Vorschaubild (480 px) aus Archivdaten/Vorschauen, fehlt es, wird es erzeugt
+  async thumb(r){try{return await (await (await this.dir(['Archivdaten','Vorschauen'],false)).getFileHandle(r.id+'.jpg')).getFile()}catch{}
+    const b=await this.blob(r);try{const t=await makeThumb(b);this.writeFile(await this.dir(['Archivdaten','Vorschauen']),r.id+'.jpg',t).catch(()=>{});return t}catch{return b}}
 }}
 const canDir=!!window.showDirectoryPicker;
 
@@ -272,13 +301,30 @@ async function createLibrary(parent){
 // ---------- Zustand ----------
 let store=BrowserStore, cars=[], queue=[], catalog={};
 const urls=new Map();
-async function urlFor(r){if(!urls.has(r.id))urls.set(r.id,URL.createObjectURL(await store.blob(r)));return urls.get(r.id)}
-function dropUrls(){urls.forEach(u=>URL.revokeObjectURL(u));urls.clear()}
+const thumbs=new Map();
+const ukey=r=>r.id+'|'+(r._stamp||'');
+async function urlFor(r){const k=ukey(r);if(!urls.has(k))urls.set(k,URL.createObjectURL(await store.blob(r)));return urls.get(k)}
+async function thumbFor(r){const k=ukey(r);if(!thumbs.has(k))thumbs.set(k,URL.createObjectURL(await store.thumb(r)));return thumbs.get(k)}
+function dropUrls(){urls.forEach(u=>URL.revokeObjectURL(u));urls.clear();thumbs.forEach(u=>URL.revokeObjectURL(u));thumbs.clear()}
+// Abgleich: Änderungen von anderen Rechnern (über Google Drive) regelmäßig übernehmen
+const sig=list=>list.map(c=>c.id+'|'+(c._stamp||'')+'|'+(c._dupes||[]).map(x=>x[1]).join('+')).sort().join(',');
+let scanning=false,lastScan=0;
+async function rescan(force){if(store.mode!=='dir'||scanning||saving)return;if(!force&&Date.now()-lastScan<5000)return;
+  scanning=true;lastScan=Date.now();
+  try{const fresh=await store.list();if(sig(fresh)===sig(cars))return;
+    const keep=new Set(fresh.map(ukey));for(const m of [urls,thumbs])for(const [k,u] of m)if(!keep.has(k)){URL.revokeObjectURL(u);m.delete(k)}
+    cars=fresh;if(cur&&$('dlg').open){const n=cars.find(c=>c.id===cur.id);if(n)cur=n;else{$('dlg').close();toast('Dieses Bild wurde auf einem anderen Rechner gelöscht',true)}}
+    refreshLists();fillFilters();render();updateStatus();queue.forEach(markDup);renderQueue()}
+  catch(e){console.warn('Abgleich',e);if(e.name==='NotFoundError'||e.name==='NotAllowedError'){updateStatus(true)}}
+  finally{scanning=false}}
+setInterval(()=>{if(document.visibilityState==='visible')rescan()},30000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')rescan()});
+window.addEventListener('focus',()=>rescan());
 
-async function useStore(s){store=s;dropUrls();cars=await s.list();catalog=await s.loadCatalog();
+async function useStore(s){store=s;dropUrls();cars=await s.list();try{catalog=(await setting('catalog'))||{}}catch{catalog={}}
   if(catalog.lastInput)fillForm('u_',{...catalog.lastInput,verified:false});
   updateStatus();refreshLists();fillFilters();render();queue.forEach(markDup);renderQueue()}
-function updateStatus(){const dir=store.mode==='dir';$('dot').className='dot '+(dir?'on':'warn');
+function updateStatus(lost){const dir=store.mode==='dir';$('dot').className='dot '+(dir&&!lost?'on':'warn');if(lost){$('statusTxt').textContent='Mediathek nicht erreichbar';return}
   $('statusTxt').textContent=dir?`Mediathek: ${store.name} · ${cars.length} Bilder`:`Nur im Browser · ${cars.length} Bilder`;
   $('status').title=dir?'Bilder liegen im Mediathek-Ordner':'Bilder liegen nur in diesem Browser. Unter „Mediathek“ einen Ordner anlegen.';}
 
@@ -358,7 +404,7 @@ $('saveBtn').onclick=async()=>{if(saving)return;const d=readForm('u_'),err=valid
       const r=normalize({id:uid(),file:'',originalName:q.file.name,sha256:q.sha,size:q.file.size,...(q.resized?{origSha256:q.origSha,resizedFrom:q.resized}:{}),importedAt:new Date().toISOString(),...await imgSize(q.file),...d});
       try{await store.add(r,q.file);cars.push(r);q.done=true;ok++}catch(e){toast(`${q.file.name}: ${e.message}`,true)}}
     queue.filter(q=>q.done).forEach(q=>URL.revokeObjectURL(q.url));queue=queue.filter(q=>!q.done);
-    catalog.lastInput={...d,verified:false};await store.saveCatalog(catalog).catch(()=>{});
+    catalog.lastInput={...d,verified:false};await setting('catalog',catalog).catch(()=>{});
   }finally{saving=false;queue.forEach(markDup);renderQueue();refreshLists();updateStatus()}
   if(ok)toast(`✓ ${ok} gespeichert`)};
 
@@ -406,7 +452,7 @@ function render(){const tok=++renderToken;
     <div class="chips">${flChip(c)}${c.verified?'<span class="chip ok">✓ geprüft</span>':'<span class="chip warn">ungeprüft</span>'}${c.specs.slice(0,3).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div></div></div>`).join('')
     :`<div class="empty">${cars.length?'Keine Treffer für diese Filter.':'Noch keine Bilder. Unter „Einsortieren“ hinzufügen.'}</div>`;
   const ob=new IntersectionObserver(es=>es.forEach(async e=>{if(!e.isIntersecting)return;ob.unobserve(e.target);const c=cars.find(x=>x.id===e.target.dataset.img);
-    try{const u=await urlFor(c);if(tok===renderToken||document.contains(e.target))e.target.src=u}catch{e.target.alt='Datei fehlt'}}),{rootMargin:'400px'});
+    try{const u=await thumbFor(c);if(tok===renderToken||document.contains(e.target))e.target.src=u}catch{e.target.alt='Datei fehlt'}}),{rootMargin:'400px'});
   document.querySelectorAll('[data-img]').forEach(i=>ob.observe(i))}
 $('grid').onclick=e=>{const it=e.target.closest('[data-id]');if(it)openDlg(it.dataset.id)};
 
@@ -456,7 +502,8 @@ $('libMigrate').onclick=async()=>{const list=await BrowserStore.list();let n=0;
 
 // ---------- Backup-Datei (für Browser ohne Ordner-Zugriff) ----------
 const b2d=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
-$('exportBtn').onclick=async()=>{const out=[];for(const c of cars)out.push({...JSON.parse(sidecarJSON(c)),image:await b2d(await store.blob(c))});
+$('exportBtn').onclick=async()=>{const out=[];let miss=0;for(const c of cars){try{out.push({...JSON.parse(sidecarJSON(c)),image:await b2d(await store.blob(c))})}catch{miss++}}
+  if(miss)toast(`${miss} Bilder fehlen im Ordner und sind nicht im Backup`,true);
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({app:'auto-bildarchiv',schema:SCHEMA,cars:out})],{type:'application/json'}));
   a.download=`auto-bildarchiv-backup-${new Date().toISOString().slice(0,10)}.json`;a.click()};
 $('importBtn').onclick=()=>$('importFile').click();
@@ -466,10 +513,20 @@ $('importFile').onchange=async()=>{const f=$('importFile').files[0];if(!f)return
     await store.add(r,blob);cars.push(r);n++}
   refreshLists();fillFilters();render();updateStatus();toast(`✓ ${n} Bilder importiert`)}catch(e){toast('Backup unlesbar: '+e.message,true)}$('importFile').value=''};
 
+// ---------- Als App installieren (Chrome/Edge, Mac und Windows) ----------
+let installEvt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;$('installBtn').classList.remove('hidden')});
+$('installBtn').onclick=async()=>{if(!installEvt)return;installEvt.prompt();await installEvt.userChoice;installEvt=null;$('installBtn').classList.add('hidden')};
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+
 // ---------- Start ----------
 (async()=>{
   await openIDB();if(navigator.storage?.persist)navigator.storage.persist();
-  let h=null;try{h=canDir?await setting('libHandle'):null}catch{}
+  // Sicherheitsnetz: falls das Wiederherstellen des Ordners beim letzten Start abgestürzt ist, nicht nochmal versuchen
+  let h=null,crashed=false;try{crashed=localStorage.getItem('restoring')==='1'}catch{}
+  if(crashed){try{await setting('libHandle',null);localStorage.removeItem('restoring')}catch{}}
+  else{try{localStorage.setItem('restoring','1')}catch{}try{h=canDir?await setting('libHandle'):null}catch{}try{localStorage.removeItem('restoring')}catch{}}
+  if(h&&h.kind!=='directory')h=null;
   if(h){const p=await h.queryPermission({mode:'readwrite'});
     if(p==='granted'){try{const meta=await readMeta(h);if(meta){await useStore(DirStore(h,meta));return}}catch{}}
     await useStore(BrowserStore);
@@ -477,6 +534,7 @@ $('importFile').onchange=async()=>{const f=$('importFile').files[0];if(!f)return
     $('reconnect').onclick=async()=>{try{if(await h.requestPermission({mode:'readwrite'})==='granted'&&await readMeta(h))await openDirLibrary(h,{create:false});else toast('Ordner nicht erreichbar. Unter „Mediathek“ neu wählen.',true)}catch(e){toast(e.message,true)}};
     return}
   await useStore(BrowserStore);
+  if(crashed&&canDir){const b=$('banner');b.innerHTML=`<p>Bitte die Mediathek einmal neu öffnen, der Ordner-Zugriff wurde zurückgesetzt.</p><button class="btn pri" id="bOpen">Mediathek öffnen</button><button onclick="this.parentNode.classList.add('hidden')">Später</button>`;b.classList.remove('hidden');$('bOpen').onclick=()=>pickDir(false);return}
   if(!canDir){const b=$('banner');b.innerHTML=`<p><b>Bitte in Google Chrome oder Microsoft Edge öffnen.</b> In diesem Browser kann die App nicht auf den gemeinsamen Mediathek-Ordner zugreifen.</p><button onclick="this.parentNode.classList.add('hidden')">Verstanden</button>`;b.classList.remove('hidden');return}
   if(canDir&&!cars.length){const b=$('banner');b.innerHTML=`<p><b>Tipp:</b> Leg zuerst eine Mediathek in deinem Google-Drive-Ordner an. Dann liegen alle Bilder mit ihren Angaben dort, und Mac und Windows sehen dasselbe.</p><button class="btn pri" id="bNew">Mediathek anlegen</button><button onclick="this.parentNode.classList.add('hidden')">Später</button>`;b.classList.remove('hidden');$('bNew').onclick=()=>pickDir(true)}
 })().catch(e=>toast('Startfehler: '+e.message,true));
