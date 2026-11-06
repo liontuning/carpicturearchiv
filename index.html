@@ -70,13 +70,30 @@ input::placeholder,textarea::placeholder{color:var(--dim)}
 .q .wait{position:absolute;inset:0;display:grid;place-items:center;background:#0008;font-size:13px}
 .form{display:grid;grid-template-columns:1fr 1fr;gap:12px var(--m)}
 .form .full{grid-column:1/-1}
+.form>*,.form3>*,.upwrap>*,.search>*{min-width:0}
+select{min-width:0;max-width:100%;text-overflow:ellipsis}
 .search{display:grid;grid-template-columns:280px 1fr;gap:var(--m)}
 @media (max-width:860px){.search{grid-template-columns:1fr}.filters{position:static}}
 @media (max-width:640px){header{position:static}header h1{width:100%;margin:0}.tabs{flex:1}.tabs button{flex:1}.status{order:3;flex:none;width:100%}.form{grid-template-columns:1fr}.btn.pri{width:100%}.dlg .row button{flex:1}}
-.filters{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:96px}
+.filters{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:96px;max-height:calc(100vh - 112px);overflow-y:auto;scrollbar-gutter:stable}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,var(--tile));gap:var(--m)}
 @media (max-width:560px){:root{--tile:calc(50vw - 24px)}}
-.item{width:var(--tile);background:var(--surface);border-radius:var(--r);overflow:hidden;cursor:pointer;border:2px solid transparent}
+.item{position:relative;width:var(--tile);background:var(--surface);border-radius:var(--r);overflow:hidden;cursor:pointer;border:2px solid transparent}
+.item.sel{border-color:var(--acc)}
+.item .tb{position:absolute;top:8px;width:40px;height:40px;padding:0;border-radius:var(--r);background:#000a;display:grid;place-items:center;font-size:18px;line-height:1}
+.item .tb:hover{background:#000d}
+.item .tb.pick{left:8px}.item .tb.dl{right:8px}
+.item .tb.pick span{width:20px;height:20px;border:2px solid #fff;border-radius:5px;display:block}
+.item.sel .tb.pick{background:var(--acc)}.item.sel .tb.pick span{border-color:#fff;background:linear-gradient(transparent,transparent)}
+.item.sel .tb.pick span::after{content:"✓";display:block;color:#fff;font-size:15px;line-height:16px;text-align:center}
+.selbar{position:fixed;left:var(--m);right:var(--m);bottom:var(--m);z-index:41;max-width:1100px;margin:0 auto;background:var(--surface);border-left:4px solid var(--acc);border-radius:var(--r);box-shadow:0 8px 32px #000a;padding:12px var(--m);display:flex;gap:var(--gap);align-items:center;flex-wrap:wrap}
+.selbar .lbl{margin:0;min-width:120px;color:var(--text)}
+.catlist{height:260px;overflow-y:auto;margin-top:12px;border-top:1px solid var(--line)}
+.catrow{display:flex;align-items:center;gap:var(--gap);height:44px;border-bottom:1px solid var(--line);font-size:16px}
+.catrow span{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.catrow button{width:40px;padding:0}
+.form3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px var(--m)}
+@media (max-width:640px){.form3{grid-template-columns:1fr 1fr}}
 .item:hover{border-color:var(--line)}
 .item .im{width:100%;aspect-ratio:4/3;background:var(--hi);display:block;object-fit:cover}
 .item .meta{padding:10px 12px}
@@ -102,7 +119,7 @@ dialog::backdrop{background:#000c}
 .empty{padding:48px;text-align:center;color:var(--dim)}
 .banner{position:fixed;left:var(--m);right:var(--m);bottom:var(--m);z-index:40;max-width:900px;margin:0 auto;box-shadow:0 8px 32px #000a;background:var(--surface);border-left:4px solid var(--amber);border-radius:var(--r);padding:12px var(--m);display:flex;gap:var(--m);align-items:center;flex-wrap:wrap}
 .banner p{margin:0;flex:1;min-width:240px}
-#toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--hi);padding:10px 18px;border-radius:var(--r);box-shadow:0 6px 24px #0008;opacity:0;transition:opacity .15s;pointer-events:none;z-index:50}
+#toast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);background:var(--hi);padding:10px 18px;border-radius:var(--r);box-shadow:0 6px 24px #0008;opacity:0;transition:opacity .15s;pointer-events:none;z-index:50}
 #toast.show{opacity:1}#toast.bad{background:var(--err)}
 </style>
 </head>
@@ -180,14 +197,59 @@ dialog::backdrop{background:#000c}
     <button class="btn pri" id="libNew">Neue Mediathek anlegen …</button>
     <button id="libOpen">Vorhandene öffnen …</button>
   </div>
-  <div class="row"><button id="libReindex">Neu einlesen</button><button id="libMigrate" class="hidden">Browser-Bilder in Mediathek übernehmen</button>
+  <div class="row"><button id="libCat">Marken &amp; Modelle</button><button id="libReindex">Neu einlesen</button><button id="libMigrate" class="hidden">Browser-Bilder in Mediathek übernehmen</button>
     <button id="installBtn" class="hidden">Als App installieren</button><button id="exportBtn">Backup-Datei speichern</button><button id="importBtn">Backup-Datei laden</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
   <p class="hint" style="margin-top:var(--m)">In der Mediathek liegt alles: jedes Bild mit einer Begleitdatei (<code>.auto.json</code>), abgelegt nach Datum. Die Begleitdateien sind die Wahrheit, die Suche wird daraus jedes Mal neu aufgebaut. Lege den Ordner in Google Drive (oder OneDrive/Dropbox), dann haben Mac und Windows dieselbe Mediathek.</p>
   <div class="row" style="justify-content:flex-end"><button id="libClose">Schließen</button></div>
 </div></dialog>
 
+<div class="selbar hidden" id="selbar">
+  <span class="lbl num" id="selCount">0 ausgewählt</span>
+  <button id="selAllVis">Alle Treffer auswählen</button>
+  <button class="btn pri" id="selZip" style="min-width:0;height:var(--ctl);font-size:17px">Herunterladen (ZIP)</button>
+  <button id="selEdit">Gemeinsam ändern</button>
+  <button class="btn danger" id="selDel">Löschen</button>
+  <button id="selNone">Auswahl aufheben</button>
+</div>
+
+<dialog id="catDlg" style="max-width:min(760px,96vw)"><div style="padding:var(--m)">
+  <h2 style="margin:0 0 6px;font-size:26px">Marken &amp; Modelle</h2>
+  <p class="hint" style="margin:0 0 var(--m);min-height:2.6em" id="catInfo"></p>
+  <div class="form3">
+    <div><span class="lbl">Marke *</span><input id="c_brand" list="dlCatBrand" autocomplete="off" placeholder="z. B. BMW"></div>
+    <div><span class="lbl">Modell</span><input id="c_model" list="dlCatModel" autocomplete="off" placeholder="z. B. 3er"></div>
+    <div><span class="lbl">Generation</span><input id="c_gen" autocomplete="off" placeholder="z. B. G20/G21"></div>
+    <div><span class="lbl">Bauzeit von</span><input id="c_from" type="number" min="1900" max="2100" placeholder="z. B. 2019"></div>
+    <div><span class="lbl">Bauzeit bis</span><input id="c_to" type="number" min="1900" max="2100" placeholder="leer = läuft noch"></div>
+    <div><span class="lbl">Facelift ab Jahr</span><input id="c_fl" type="number" min="1900" max="2100" placeholder="leer = keins"></div>
+  </div>
+  <div class="row" style="margin-top:var(--m)"><button class="btn pri" id="catAdd" style="min-width:0;height:var(--ctl);font-size:17px">Hinzufügen</button><span class="hint">Nur Marke = neue Marke · Marke + Modell = neues Modell · mit Generation = neue Generation</span></div>
+  <span class="lbl" style="margin-top:var(--m)">Eigene Einträge (gelten auf allen Rechnern)</span>
+  <div class="catlist" id="catList"></div>
+  <div class="row" style="justify-content:flex-end;margin-top:var(--m)"><button id="catClose">Schließen</button></div>
+</div></dialog>
+
+<dialog id="bulkDlg" style="max-width:min(760px,96vw)"><div style="padding:var(--m)">
+  <h2 style="margin:0 0 6px;font-size:26px" id="bulkTitle">Gemeinsam ändern</h2>
+  <p class="hint" style="margin:0 0 var(--m)">Nur was du hier ausfüllst, wird bei allen ausgewählten Bildern geändert. Leere Felder bleiben, wie sie sind.</p>
+  <div class="form">
+    <div><span class="lbl">Marke</span><select id="b_brand"></select></div>
+    <div><span class="lbl">Modell</span><select id="b_model"></select></div>
+    <div class="full"><span class="lbl">Generation</span><select id="b_gen"></select></div>
+    <div class="full"><span class="lbl">Facelift</span><div class="seg" id="b_fl"><button type="button" data-v="keep" class="on">Unverändert</button><button type="button" data-v="vfl">Vor-Facelift</button><button type="button" data-v="fl">Facelift</button><button type="button" data-v="">Unbekannt</button></div></div>
+    <div><span class="lbl">Baujahr von</span><input id="b_from" type="number" min="1900" max="2100" placeholder="unverändert"></div>
+    <div><span class="lbl">Baujahr bis</span><input id="b_to" type="number" min="1900" max="2100" placeholder="unverändert"></div>
+    <div><span class="lbl">Karosserie</span><input id="b_body" list="dlBody" placeholder="unverändert"></div>
+    <div><span class="lbl">Ansicht</span><select id="b_view"></select></div>
+    <div><span class="lbl">Spezifikationen hinzufügen</span><input id="b_addSpecs" placeholder="z. B. M-Paket, xDrive"></div>
+    <div><span class="lbl">Spezifikationen entfernen</span><input id="b_rmSpecs" placeholder="z. B. 330i"></div>
+    <div class="full"><span class="lbl">Angaben geprüft</span><div class="seg" id="b_ver"><button type="button" data-v="keep" class="on">Unverändert</button><button type="button" data-v="1">Ja, geprüft</button><button type="button" data-v="0">Nein, ungeprüft</button></div></div>
+  </div>
+  <div class="row" style="margin-top:var(--m)"><button class="btn pri" id="bulkSave">Übernehmen</button><button id="bulkClose">Abbrechen</button></div>
+</div></dialog>
+
 <div id="toast"></div>
-<datalist id="dlBrand"></datalist><datalist id="dlModel"></datalist><datalist id="dlGen"></datalist><datalist id="dlBody"></datalist>
+<datalist id="dlBody"></datalist><datalist id="dlCatBrand"></datalist><datalist id="dlCatModel"></datalist>
 
 <script>
 'use strict';
@@ -230,7 +292,8 @@ const BrowserStore={mode:'browser',name:'Dieser Browser',
   async add(r,blob){await req(os('cars','readwrite').put({...JSON.parse(sidecarJSON(r)),blob}));r._blob=blob},
   async update(r){await req(os('cars','readwrite').put({...JSON.parse(sidecarJSON(r)),blob:r._blob}))},
   async remove(r){await req(os('cars','readwrite').delete(r.id))},
-  async blob(r){return r._blob},async thumb(r){return r._blob}};
+  async blob(r){return r._blob},async thumb(r){return r._blob},
+  async loadOwnCat(){return (await setting('ownCat'))||[]},async saveOwnCat(list){await setting('ownCat',list)}};
 
 // ---------- Mediathek-Ordner (File System Access, wie Loomn: Begleitdatei = Wahrheit) ----------
 const isJunk=n=>n.startsWith('.')||n.startsWith('~$')||n.endsWith('.crswap')||n.endsWith('.tmp');
@@ -282,6 +345,14 @@ function DirStore(root,meta){return{mode:'dir',name:root.name,root,meta,
     await r._dir.removeEntry(r.file).catch(()=>{});await r._dir.removeEntry(r.file+SIDE);await this.dropDupes(r);
     try{await (await this.dir(['Archivdaten','Vorschauen'],false)).removeEntry(r.id+'.jpg')}catch{}},
   async blob(r){return (await r._dir.getFileHandle(r.file)).getFile()},
+  // Eigene Marken/Modelle/Generationen: Archivdaten/katalog-eigene.json (Konfliktkopien von Drive werden zusammengeführt)
+  async loadOwnCat(){const map=new Map();let d;try{d=await this.dir(['Archivdaten'],false)}catch{return []}
+    for await(const [n,h] of d.entries()){if(h.kind!=='file'||!/^katalog-eigene.*\.json$/.test(n))continue;
+      try{const o=JSON.parse(await (await h.getFile()).text());for(const e of o.entries||[]){if(e&&e.brand){const k=okey(e);const old=map.get(k);if(!old||String(e.added||'')>String(old.added||''))map.set(k,e)}}
+        for(const k of o.removed||[])map.set(k,{...(map.get(k)||{}),_removed:true})}catch{}}
+    return [...map.values()].filter(e=>e.brand&&!e._removed)},
+  async saveOwnCat(list){const d=await this.dir(['Archivdaten']);await this.writeFile(d,'katalog-eigene.json',JSON.stringify({schema:1,entries:list},null,2));
+    for await(const [n] of d.entries())if(n!=='katalog-eigene.json'&&/^katalog-eigene.*\.json$/.test(n))await d.removeEntry(n).catch(()=>{})},
   // Vorschaubild (480 px) aus Archivdaten/Vorschauen, fehlt es, wird es erzeugt
   async thumb(r){try{return await (await (await this.dir(['Archivdaten','Vorschauen'],false)).getFileHandle(r.id+'.jpg')).getFile()}catch{}
     const b=await this.blob(r);try{const t=await makeThumb(b);this.writeFile(await this.dir(['Archivdaten','Vorschauen']),r.id+'.jpg',t).catch(()=>{});return t}catch{return b}}
@@ -311,7 +382,8 @@ const sig=list=>list.map(c=>c.id+'|'+(c._stamp||'')+'|'+(c._dupes||[]).map(x=>x[
 let scanning=false,lastScan=0;
 async function rescan(force){if(store.mode!=='dir'||scanning||saving)return;if(!force&&Date.now()-lastScan<5000)return;
   scanning=true;lastScan=Date.now();
-  try{const fresh=await store.list();if(sig(fresh)===sig(cars))return;
+  try{try{const oc=await store.loadOwnCat();if(JSON.stringify(oc)!==JSON.stringify(ownCat)){ownCat=oc;refreshLists();renderCat()}}catch{}
+    const fresh=await store.list();if(sig(fresh)===sig(cars))return;
     const keep=new Set(fresh.map(ukey));for(const m of [urls,thumbs])for(const [k,u] of m)if(!keep.has(k)){URL.revokeObjectURL(u);m.delete(k)}
     cars=fresh;if(cur&&$('dlg').open){const n=cars.find(c=>c.id===cur.id);if(n)cur=n;else{$('dlg').close();toast('Dieses Bild wurde auf einem anderen Rechner gelöscht',true)}}
     refreshLists();fillFilters();render();updateStatus();queue.forEach(markDup);renderQueue()}
@@ -321,19 +393,110 @@ setInterval(()=>{if(document.visibilityState==='visible')rescan()},30000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')rescan()});
 window.addEventListener('focus',()=>rescan());
 
-async function useStore(s){store=s;dropUrls();cars=await s.list();try{catalog=(await setting('catalog'))||{}}catch{catalog={}}
+async function useStore(s){store=s;dropUrls();cars=await s.list();try{ownCat=await s.loadOwnCat()}catch{ownCat=[]}try{catalog=(await setting('catalog'))||{}}catch{catalog={}}
   if(catalog.lastInput)fillForm('u_',{...catalog.lastInput,verified:false});
   updateStatus();refreshLists();fillFilters();render();queue.forEach(markDup);renderQueue()}
 function updateStatus(lost){const dir=store.mode==='dir';$('dot').className='dot '+(dir&&!lost?'on':'warn');if(lost){$('statusTxt').textContent='Mediathek nicht erreichbar';return}
   $('statusTxt').textContent=dir?`Mediathek: ${store.name} · ${cars.length} Bilder`:`Nur im Browser · ${cars.length} Bilder`;
   $('status').title=dir?'Bilder liegen im Mediathek-Ordner':'Bilder liegen nur in diesem Browser. Unter „Mediathek“ einen Ordner anlegen.';}
 
+// ---------- Fahrzeugkatalog (Vorschläge) ----------
+// Format je Modell: "Generation:von-bis:Facelift-Jahr|…"  (bis leer = läuft noch, Facelift leer = keins/unbekannt)
+// Jahre = Bauzeit Europa, Facelift = Jahr der Modellpflege. Werte sind Vorschläge und können im Formular überschrieben werden.
+const CAT_MODELS={
+'Volkswagen':{'Golf':'IV:1997-2003|V:2003-2008|VI:2008-2012|VII:2012-2019:2017|VIII:2019-:2024','Polo':'9N:2001-2009:2005|6R/6C:2009-2017:2014|AW:2017-:2021','Passat':'B5:1996-2005:2000|B6:2005-2010|B7:2010-2014|B8:2014-2023:2019|B9:2023-','Tiguan':'I (5N):2007-2016:2011|II (AD1):2016-2024:2020|III:2024-','Touran':'I (1T):2003-2015:2010|II (5T):2015-','Touareg':'I (7L):2002-2010:2006|II (7P):2010-2018:2014|III (CR):2018-:2023','T-Roc':'A1:2017-:2022','T-Cross':'C1:2019-:2024','Taigo':'CS:2021-','Arteon':'3H:2017-2024:2020','Scirocco':'III (13):2008-2017:2014','up!':'AA:2011-2023:2016','Sharan':'II (7N):2010-2022:2015','Caddy':'III (2K):2003-2020:2015|V (SB):2020-','Transporter / Multivan':'T5:2003-2015:2009|T6:2015-2024:2019|T7:2021-','Amarok':'I (2H):2010-2022:2016|II:2022-','Beetle':'5C:2011-2019:2016','Eos':'1F:2006-2015:2010','Phaeton':'3D:2002-2016:2010','ID.3':'E1:2019-:2023','ID.4':'E2:2020-','ID.5':'E3:2021-','ID.7':'ED:2023-','ID. Buzz':'EB:2022-'},
+'Audi':{'A1':'8X:2010-2018:2014|GB:2018-','A3':'8L:1996-2003:2000|8P:2003-2013:2008|8V:2012-2020:2016|8Y:2020-:2024','A4':'B6 (8E):2000-2004|B7 (8E):2004-2008|B8 (8K):2007-2015:2011|B9 (8W):2015-2024:2019','A5':'8T:2007-2016:2011|F5:2016-2024:2019|B10 (FU):2024-','A6':'C5 (4B):1997-2004:2001|C6 (4F):2004-2011:2008|C7 (4G):2011-2018:2014|C8 (4K):2018-:2023','A7':'4G8:2010-2018:2014|4K8:2018-:2023','A8':'D3 (4E):2002-2010:2007|D4 (4H):2010-2017:2013|D5 (4N):2017-:2021','Q2':'GA:2016-:2020','Q3':'8U:2011-2018:2014|F3:2018-2025|III:2025-','Q5':'8R:2008-2017:2012|FY:2017-2024:2020|GU:2024-','Q7':'4L:2005-2015:2009|4M:2015-:2019','Q8':'4M:2018-:2023','TT':'8N:1998-2006|8J:2006-2014:2010|FV (8S):2014-2023:2018','R8':'42:2006-2015:2012|4S:2015-2024:2018','e-tron / Q8 e-tron':'GE:2018-2025:2023','Q4 e-tron':'F4:2021-','e-tron GT':'F8:2021-:2024','Q6 e-tron':'GF:2024-'},
+'BMW':{'1er':'E81/E87:2004-2011:2007|F20/F21:2011-2019:2015|F40:2019-2024|F70:2024-','2er Coupé/Cabrio':'F22/F23:2014-2021:2017|G42:2021-','2er Active Tourer':'F45:2014-2021:2018|U06:2021-','2er Gran Coupé':'F44:2019-','3er':'E46:1998-2006:2001|E90/E91/E92/E93:2005-2013:2008|F30/F31/F34:2011-2019:2015|G20/G21:2019-:2022','4er':'F32/F33/F36:2013-2020:2017|G22/G23/G26:2020-:2024','5er':'E39:1995-2004:2000|E60/E61:2003-2010:2007|F10/F11:2010-2017:2013|G30/G31:2017-2023:2020|G60/G61:2023-','6er':'E63/E64:2003-2010:2007|F06/F12/F13:2011-2018:2015|G32 GT:2017-2023:2020','7er':'E65/E66:2001-2008:2005|F01/F02:2008-2015:2012|G11/G12:2015-2022:2019|G70:2022-','8er':'G14/G15/G16:2018-:2022','X1':'E84:2009-2015:2012|F48:2015-2022:2019|U11:2022-','X2':'F39:2018-2023|U10:2023-','X3':'E83:2003-2010:2006|F25:2010-2017:2014|G01:2017-2024:2021|G45:2024-','X4':'F26:2014-2018|G02:2018-:2021','X5':'E53:1999-2006:2003|E70:2006-2013:2010|F15:2013-2018|G05:2018-:2023','X6':'E71:2008-2014:2012|F16:2014-2019|G06:2019-:2023','X7':'G07:2018-:2022','Z4':'E85/E86:2002-2008:2006|E89:2009-2016:2013|G29:2018-','i3':'I01:2013-2022:2017','i4':'G26:2021-:2024','iX':'I20:2021-:2025','iX3':'G08:2020-2025:2021','M2':'F87:2016-2021:2018|G87:2023-'},
+'Mercedes-Benz':{'A-Klasse':'W168:1997-2004:2001|W169:2004-2012:2008|W176:2012-2018:2015|W177:2018-:2022','B-Klasse':'W245:2005-2011:2008|W246:2011-2018:2014|W247:2018-:2022','C-Klasse':'W203:2000-2007:2004|W204:2007-2014:2011|W205:2014-2021:2018|W206:2021-','CLA':'C117:2013-2019:2016|C118:2019-:2023','CLS':'C219:2004-2010:2008|C218:2011-2018:2014|C257:2018-2023:2021','E-Klasse':'W211:2002-2009:2006|W212:2009-2016:2013|W213:2016-2023:2020|W214:2023-','S-Klasse':'W220:1998-2005:2002|W221:2005-2013:2009|W222:2013-2020:2017|W223:2020-','GLA':'X156:2014-2020:2017|H247:2020-:2023','GLB':'X247:2019-:2023','GLC':'X253:2015-2022:2019|X254:2022-','GLE / M-Klasse':'W163:1997-2005:2001|W164:2005-2011:2008|W166:2011-2019:2015|W167:2019-:2023','GLS / GL':'X164:2006-2012:2009|X166:2012-2019:2015|X167:2019-:2023','G-Klasse':'W463:1990-2018:2012|W463A:2018-:2024','SL':'R230:2001-2011:2008|R231:2012-2020:2016|R232:2021-','SLK / SLC':'R170:1996-2004:2000|R171:2004-2011:2008|R172:2011-2020:2016','AMG GT':'C190:2014-2021:2017|C192:2023-','V-Klasse / Vito':'W639:2003-2014:2010|W447:2014-:2019','Sprinter':'W906:2006-2018:2013|W907:2018-','EQA':'H243:2021-:2024','EQB':'X243:2021-:2024','EQC':'N293:2019-2024','EQE':'V295:2022-','EQS':'V297:2021-:2024'},
+'Porsche':{'911':'996:1997-2005:2001|997:2004-2012:2008|991:2011-2019:2015|992:2019-:2024','Boxster / Cayman (718)':'986:1996-2004:2002|987:2004-2012:2008|981:2012-2016|982 (718):2016-','Cayenne':'9PA:2002-2010:2007|92A:2010-2017:2014|9YA:2017-:2023','Macan':'95B:2014-2024:2018|Electric:2024-','Panamera':'970:2009-2016:2013|971:2016-2023:2020|976:2023-','Taycan':'Y1A:2019-:2024'},
+'Opel':{'Corsa':'C:2000-2006:2003|D:2006-2014:2010|E:2014-2019|F:2019-:2023','Astra':'G:1998-2009|H:2004-2014:2007|J:2009-2015:2012|K:2015-2021:2019|L:2021-','Insignia':'A:2008-2017:2013|B:2017-2022:2020','Mokka':'A (J13):2012-2019:2016|B:2020-','Grandland':'I:2017-2024:2021|II:2024-','Crossland':'P17:2017-2024:2020','Zafira':'B:2005-2014:2008|C Tourer:2011-2019:2016','Meriva':'B:2010-2017:2014','Vectra':'C:2002-2008:2005','Adam':'M13:2013-2019','Combo':'E:2018-:2024'},
+'Ford':{'Fiesta':'Mk5:2002-2008:2005|Mk6:2008-2017:2012|Mk7:2017-2023:2022','Focus':'Mk1:1998-2004:2001|Mk2:2004-2011:2008|Mk3:2011-2018:2014|Mk4:2018-2025:2022','Mondeo':'Mk3:2000-2007:2003|Mk4:2007-2014:2010|Mk5:2014-2022:2019','Kuga':'I:2008-2012|II:2012-2019:2016|III:2019-:2024','Puma':'J2K:2019-:2024','Mustang':'S197:2005-2014:2010|S550:2014-2023:2017|S650:2023-','Mustang Mach-E':'2020-','S-Max':'I:2006-2015:2010|II:2015-2023:2019','C-Max':'II:2010-2019:2015','Ranger':'T6:2011-2022:2015|VI:2022-','Transit Custom':'I:2012-2023:2018|II:2023-','Explorer':'EV:2024-'},
+'Skoda':{'Fabia':'I:1999-2007:2004|II:2007-2014:2010|III:2014-2021:2018|IV:2021-','Octavia':'I:1996-2010:2000|II (1Z):2004-2013:2008|III (5E):2012-2020:2017|IV (NX):2019-:2024','Superb':'I:2001-2008:2006|II (3T):2008-2015:2013|III (3V):2015-2023:2019|IV:2024-','Kodiaq':'I:2016-2024:2021|II:2024-','Karoq':'NU:2017-:2022','Kamiq':'NW:2019-:2024','Scala':'NW:2019-:2024','Enyaq':'5A:2020-:2025','Elroq':'2024-','Yeti':'5L:2009-2017:2013','Citigo':'NF:2011-2020:2017','Rapid':'NH:2012-2019:2017'},
+'Seat':{'Ibiza':'6L:2002-2008:2006|6J:2008-2017:2012|KJ:2017-:2021','Leon':'1M:1999-2006|1P:2005-2012:2009|5F:2012-2020:2017|KL:2020-:2024','Ateca':'KH:2016-:2020','Arona':'KJ7:2017-:2021','Tarraco':'KN:2018-2024','Alhambra':'7N:2010-2020:2015'},
+'Cupra':{'Formentor':'KM:2020-:2024','Born':'K1:2021-','Leon':'KL:2020-:2024','Ateca':'KH:2018-:2020','Tavascan':'2024-','Terramar':'2024-'},
+'Toyota':{'Yaris':'XP10:1999-2005:2003|XP90:2005-2011:2009|XP130:2011-2020:2017|XP210:2020-:2024','GR Yaris':'XP210:2020-:2024','Corolla / Auris':'E12:2002-2007:2004|Auris E15:2006-2012:2010|Auris E18:2012-2018:2015|E21:2018-:2022','C-HR':'AX10:2016-2023:2019|AX20:2023-','RAV4':'XA20:2000-2005:2003|XA30:2005-2012:2010|XA40:2013-2018:2015|XA50:2018-:2022','Prius':'XW30:2009-2015:2011|XW50:2015-2022:2018|XW60:2022-','Aygo / Aygo X':'AB10:2005-2014:2012|AB40:2014-2022:2018|Aygo X:2022-','Land Cruiser':'J150:2009-2023:2017|J250:2024-','Hilux':'AN120:2015-:2020','Supra':'A90:2019-','GT86 / GR86':'ZN6:2012-2021:2016|GR86 ZN8:2022-','Avensis':'T27:2009-2018:2015'},
+'Renault':{'Clio':'II:1998-2005:2001|III:2005-2012:2009|IV:2012-2019:2016|V:2019-:2023','Mégane':'II:2002-2008:2006|III:2008-2016:2012|IV:2016-2023:2020|E-Tech:2022-','Captur':'I:2013-2019:2017|II:2019-:2024','Kadjar':'HA:2015-2022:2018','Austral':'2022-','Scénic':'III:2009-2016:2012|IV:2016-2022|E-Tech:2024-','Twingo':'II:2007-2014:2011|III:2014-2024:2019','Zoe':'BFM:2012-2024:2019','Kangoo':'II:2008-2021:2013|III:2021-','Talisman':'2015-2022:2020','Arkana':'2021-'},
+'Peugeot':{'208':'I:2012-2019:2015|II:2019-:2023','2008':'I:2013-2019:2016|II:2019-:2023','308':'I:2007-2013:2011|II:2013-2021:2017|III:2021-','3008':'I:2009-2016:2013|II:2016-2023:2020|III:2023-','5008':'I:2009-2017:2013|II:2017-2023:2020|III:2024-','508':'I:2010-2018:2014|II:2018-:2023','206':'1998-2012:2003','207':'2006-2014:2009','307':'2001-2008:2005'},
+'Citroën':{'C3':'II:2009-2016:2013|III:2016-2024:2020|IV:2024-','C4':'II:2010-2018:2015|III:2020-','C5 Aircross':'I:2018-:2022','Berlingo':'III:2018-','C4 Cactus':'2014-2020:2018'},
+'Hyundai':{'i10':'I:2008-2013:2011|II:2013-2019:2016|III:2019-:2023','i20':'I:2008-2014:2012|II:2014-2020:2018|III:2020-:2023','i30':'FD:2007-2012:2010|GD:2011-2017:2015|PD:2017-:2020','Tucson / ix35':'JM:2004-2010|ix35 LM:2009-2015:2013|TL:2015-2020:2018|NX4:2020-:2024','Kona':'OS:2017-2023:2020|SX2:2023-','Santa Fe':'CM:2006-2012:2010|DM:2012-2018:2015|TM:2018-2023:2020|MX5:2023-','Ioniq':'AE:2016-2022:2019','Ioniq 5':'NE:2021-:2024','Ioniq 6':'CE:2022-:2025','Bayon':'BC3:2021-:2024'},
+'Kia':{'Picanto':'SA:2004-2011:2008|TA:2011-2017:2015|JA:2017-:2020','Rio':'UB:2011-2017:2015|YB:2017-2023:2020','Ceed':'ED:2006-2012:2009|JD:2012-2018:2015|CD:2018-:2021','XCeed':'CD:2019-:2022','Sportage':'JE/KM:2004-2010:2008|SL:2010-2015:2014|QL:2015-2021:2018|NQ5:2021-:2024','Sorento':'XM:2009-2014:2012|UM:2014-2020:2017|MQ4:2020-:2024','Niro':'DE:2016-2022:2019|SG2:2022-','Stonic':'YB:2017-:2020','EV6':'CV:2021-:2024','EV9':'MV:2023-','Stinger':'CK:2017-2023:2020'},
+'Mazda':{'Mazda2':'DE:2007-2014:2010|DJ:2014-:2019','Mazda3':'BK:2003-2009:2006|BL:2009-2013:2011|BM:2013-2019:2016|BP:2019-','Mazda6':'GG:2002-2008:2005|GH:2007-2012:2010|GJ:2012-2024:2018','CX-3':'DK:2015-2021:2018','CX-5':'KE:2012-2017:2015|KF:2017-:2021','CX-30':'DM:2019-','CX-60':'KH:2022-','MX-5':'NB:1998-2005:2001|NC:2005-2015:2008|ND:2015-:2024','MX-30':'DR:2020-'},
+'Volvo':{'XC40':'536:2017-:2022','XC60':'I:2008-2017:2013|II:2017-:2021','XC90':'I:2002-2014:2006|II:2014-:2019','V40':'525:2012-2019:2016','S60 / V60':'II:2010-2018:2013|III:2018-','S90 / V90':'II:2016-:2020','V70':'III:2007-2016:2013','EX30':'2023-','EX90':'2024-'},
+'Mini':{'Mini (3-/5-Türer, Cabrio)':'R50/R52/R53:2001-2006:2004|R56/R57:2006-2013:2010|F55/F56/F57:2014-2024:2018|F65/F66/J01:2024-','Countryman':'R60:2010-2016:2014|F60:2017-2024:2020|U25:2024-','Clubman':'R55:2007-2014:2010|F54:2015-2024:2019'},
+'Tesla':{'Model S':'2012-:2016','Model 3':'2017-:2023','Model X':'2015-:2021','Model Y':'2020-:2025'},
+'Fiat':{'500':'312:2007-2024:2015|500e (332):2020-','500X':'334:2014-:2018','Panda':'169:2003-2012|319:2012-','Tipo':'356:2015-:2020','Ducato':'250:2006-:2014'},
+'Nissan':{'Qashqai':'J10:2006-2013:2010|J11:2013-2021:2017|J12:2021-:2024','Juke':'F15:2010-2019:2014|F16:2019-','Micra':'K12:2002-2010|K13:2010-2017:2013|K14:2017-2023','X-Trail':'T31:2007-2013:2010|T32:2013-2021:2017|T33:2022-','Leaf':'ZE0:2010-2017|ZE1:2017-2025','GT-R':'R35:2007-2025:2017','370Z':'Z34:2009-2020'},
+'Honda':{'Civic':'VIII:2005-2011:2008|IX:2011-2017:2014|X:2017-2021:2020|XI:2021-','Jazz':'GE:2008-2015:2011|GK:2015-2020:2018|GR:2020-:2023','CR-V':'III:2006-2012:2010|IV:2012-2018:2015|V:2018-2023|VI:2023-','HR-V':'RU:2015-2021:2018|RV:2021-','e':'ZC7:2020-2024'},
+'Dacia':{'Sandero':'I:2008-2012|II:2012-2020:2016|III:2020-:2022','Duster':'I:2010-2017:2013|II:2017-2024:2021|III:2024-','Jogger':'RJI:2021-','Spring':'BBG:2021-:2024'},
+'Land Rover':{'Range Rover':'L322:2002-2012:2009|L405:2012-2021:2017|L460:2022-','Range Rover Sport':'L320:2005-2013:2009|L494:2013-2022:2017|L461:2022-','Range Rover Evoque':'L538:2011-2018:2015|L551:2018-','Range Rover Velar':'L560:2017-:2023','Discovery':'4 (L319):2009-2016:2013|5 (L462):2017-:2020','Discovery Sport':'L550:2014-:2019','Defender':'L316:1983-2016|L663:2020-'},
+'Jaguar':{'F-Pace':'X761:2016-:2020','E-Pace':'X540:2017-2024:2020','I-Pace':'X590:2018-2024','XE':'X760:2015-2024:2019','XF':'X250:2007-2015:2011|X260:2015-2024:2020','F-Type':'X152:2013-2024:2020'},
+'Lexus':{'NX':'AZ10:2014-2021:2017|AZ20:2021-','RX':'AL20:2015-2022:2019|ALH10:2022-','UX':'ZA10:2018-:2022','IS':'XE30:2013-:2016'},
+'Subaru':{'Forester':'SJ:2012-2018:2015|SK:2018-2024:2021|SL:2024-','Outback':'BS:2014-2021:2017|BT:2021-','XV / Crosstrek':'GT:2017-2023:2021|Crosstrek:2023-','BRZ':'ZC6:2012-2020:2017|ZD8:2021-'},
+'Suzuki':{'Swift':'FZ/NZ:2010-2017:2013|AZ:2017-2024:2020|AZH:2024-','Vitara':'LY:2015-:2018','Jimny':'GJ:2018-','S-Cross':'JY:2013-2021:2016|II:2021-','Ignis':'MF:2016-:2020'},
+'Mitsubishi':{'Outlander':'II:2006-2012:2010|III:2012-2021:2015','ASX':'GA:2010-2023:2019|II:2023-','Space Star':'A0:2013-:2019','L200':'KL:2015-2024:2019'},
+'Alfa Romeo':{'Giulia':'952:2016-:2023','Stelvio':'949:2017-:2023','Giulietta':'940:2010-2020:2016','MiTo':'955:2008-2018:2013','Tonale':'2022-','Junior':'2024-','159':'939:2005-2011'},
+'Jeep':{'Wrangler':'JK:2007-2018|JL:2018-:2023','Grand Cherokee':'WK2:2010-2021:2013|WL:2021-','Compass':'MP:2017-:2021','Renegade':'BU:2014-:2018','Avenger':'2023-'},
+'Smart':{'fortwo':'451:2007-2014:2012|453:2014-2024:2020','forfour':'453:2014-2021:2020','#1':'2022-','#3':'2024-'},
+'Polestar':{'Polestar 2':'2020-:2023','Polestar 3':'2024-','Polestar 4':'2024-'},
+'MG':{'MG4':'2022-','ZS':'2017-:2020','HS':'I:2018-2024|II:2024-'},
+'BYD':{'Atto 3':'2022-','Seal':'2022-','Dolphin':'2023-','Seal U':'2024-'},
+'Lamborghini':{'Huracán':'LB724:2014-2024:2019','Aventador':'LB834:2011-2022:2016','Urus':'2018-:2022','Revuelto':'2023-'},
+'Ferrari':{'458':'F142:2009-2015','488':'F142M:2015-2019','F8':'F142MFL:2019-2023','296':'F171:2021-','Roma':'F169:2020-','SF90':'F173:2019-:2024','Purosangue':'F175:2022-'},
+'Maserati':{'Ghibli':'M157:2013-2024:2017','Levante':'M161:2016-2024','Grecale':'2022-','Quattroporte':'VI (M156):2013-2024:2016','MC20':'2020-'},
+'Bentley':{'Continental GT':'II:2011-2018:2015|III:2018-2024|IV:2024-','Bentayga':'4V:2015-:2020'},
+'Rolls-Royce':{'Ghost':'I:2009-2020:2014|II:2020-:2024','Cullinan':'RR31:2018-:2024','Phantom':'VIII:2017-:2022'},
+'Aston Martin':{'DB11':'2016-2023','Vantage':'2018-:2024','DBX':'2020-'}
+};
+const CAT_EXTRA_BRANDS=['Abarth','Alpine','BAIC','Bugatti','Cadillac','Chevrolet','Chrysler','Daihatsu','Dodge','DS','Genesis','GMC','Hummer','Infiniti','Ineos','Isuzu','Iveco','KGM (SsangYong)','Lada','Lancia','Leapmotor','Lotus','Lucid','Lynk & Co','McLaren','Morgan','NIO','Ora','RAM','Rover','Saab','Xpeng','Zeekr'];
+
+const parsedCat={};
+function parseGens(str){return str.split('|').map(g=>{const p=g.split(':');let code,range,fl;if(/^\d{4}-/.test(p[0])){code='';range=p[0];fl=p[1]}else[code,range,fl]=p;
+  const m=/^(\d{4})-(\d{4})?$/.exec(range||'');if(!m)return null;const from=+m[1],to=m[2]?+m[2]:null;
+  return{gen:code||(to?`${from}–${to}`:`ab ${from}`),from,to,fl:fl?+fl:null}}).filter(Boolean)}
+for(const b in CAT_MODELS){parsedCat[b]={};for(const m in CAT_MODELS[b])parsedCat[b][m]=parseGens(CAT_MODELS[b][m])}
+let ownCat=[];
+const okey=o=>[o.brand,o.model||'',o.gen||''].join('|').toLowerCase();
+function catBrands(){return uniq([...Object.keys(parsedCat),...CAT_EXTRA_BRANDS,...ownCat.map(o=>o.brand),...cars.map(c=>c.brand)])}
+function catModels(b){if(!b)return[];return uniq([...Object.keys(parsedCat[b]||{}),...ownCat.filter(o=>o.brand===b&&o.model).map(o=>o.model),...cars.filter(c=>c.brand===b).map(c=>c.model)])}
+function catGens(b,m){if(!b||!m)return[];const map=new Map();
+  for(const g of (parsedCat[b]||{})[m]||[])map.set(g.gen,g);
+  for(const o of ownCat)if(o.brand===b&&o.model===m&&o.gen&&!map.has(o.gen))map.set(o.gen,{gen:o.gen,from:o.from||null,to:o.to||null,fl:o.fl||null,own:true});
+  for(const c of cars)if(c.brand===b&&c.model===m&&c.gen&&!map.has(c.gen))map.set(c.gen,{gen:c.gen});
+  return [...map.values()].sort((x,y)=>(x.from||9999)-(y.from||9999)||x.gen.localeCompare(y.gen,'de'))}
+const genLabel=g=>g.gen+(g.from?` · ${g.from}–${g.to||'heute'}`:'')+(g.fl?` · Facelift ${g.fl}`:'');
+function genInfo(b,m,gen){return catGens(b,m).find(g=>g.gen===gen)}
+const NEW='__neu__';
+function opts(list,cur,first,newLabel,label=x=>x){const all=cur&&!list.includes(cur)?[...list,cur]:list;
+  return `<option value="">${first}</option>`+all.map(v=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(label(v))}</option>`).join('')+(newLabel?`<option value="${NEW}">${newLabel}</option>`:'')}
+// Auswahllisten Marke → Modell → Generation füllen, aktuelle Werte bleiben erhalten
+function fillCascade(p,brand,model,gen,keepLabel){
+  const first=keepLabel||'Bitte wählen';
+  $(p+'brand').innerHTML=opts(catBrands(),brand,keepLabel?'– unverändert –':'Marke wählen','＋ Neue Marke …');
+  $(p+'model').innerHTML=opts(catModels(brand),model,brand?(keepLabel?'– bitte wählen –':'Modell wählen'):'– erst Marke wählen –','＋ Neues Modell …');
+  const gens=catGens(brand,model);const gl=Object.fromEntries(gens.map(g=>[g.gen,genLabel(g)]));
+  $(p+'gen').innerHTML=opts(gens.map(g=>g.gen),gen,model?'– unbekannt / keine –':'– erst Modell wählen –',model?'＋ Neue Generation …':'',v=>gl[v]||v);
+  $(p+'model').disabled=!brand;$(p+'gen').disabled=!model}
+// Baujahre aus Generation + Facelift vorschlagen
+function suggestYears(p){const g=genInfo($(p+'brand').value,$(p+'model').value,$(p+'gen').value);if(!g||!g.from)return;
+  const f=segVal($(p+'fl'));let from=g.from,to=g.to;
+  if(g.fl&&f==='vfl')to=g.fl;else if(g.fl&&f==='fl')from=g.fl;
+  $(p+'from').value=from;$(p+'to').value=to??''}
+function wireCascade(p,onYears){let prev={};
+  const snap=()=>prev={brand:$(p+'brand').value,model:$(p+'model').value,gen:$(p+'gen').value};
+  ['brand','model','gen'].forEach(k=>{$(p+k).addEventListener('focus',snap);$(p+k).addEventListener('mousedown',snap);
+    $(p+k).addEventListener('change',()=>{const v=$(p+k).value;
+      if(v===NEW){const back=prev;fillCascade(p,back.brand,back.model,back.gen,p==='b_'?'keep':'');
+        openCat({brand:k==='brand'?'':$(p+'brand').value,model:k==='gen'?$(p+'model').value:'',focus:k});return}
+      const b=$(p+'brand').value,m=k==='brand'?'':$(p+'model').value,g=k==='gen'?v:'';
+      fillCascade(p,b,m,g,p==='b_'?'keep':'');
+      if(k==='gen'&&onYears)onYears();snap()})})}
+
 // ---------- Formular ----------
 function formHTML(p){return `
- <div><span class="lbl">Marke *</span><input id="${p}brand" list="dlBrand" placeholder="z. B. BMW" autocomplete="off"></div>
- <div><span class="lbl">Modell *</span><input id="${p}model" list="dlModel" placeholder="z. B. 3er" autocomplete="off"></div>
- <div><span class="lbl">Generation / Baureihe</span><input id="${p}gen" list="dlGen" placeholder="z. B. F30, W205, 8V" autocomplete="off"></div>
- <div><span class="lbl">Karosserie</span><input id="${p}body" list="dlBody" placeholder="z. B. Limousine, Touring" autocomplete="off"></div>
+ <div><span class="lbl">Marke *</span><select id="${p}brand"></select></div>
+ <div><span class="lbl">Modell *</span><select id="${p}model"></select></div>
+ <div class="full"><span class="lbl">Generation / Baureihe · Baujahre werden vorgeschlagen</span><select id="${p}gen"></select></div>
+ <div class="full"><span class="lbl">Karosserie</span><input id="${p}body" list="dlBody" placeholder="z. B. Limousine, Touring" autocomplete="off"></div>
  <div class="full"><span class="lbl">Facelift</span><div class="seg" id="${p}fl"><button type="button" data-v="vfl">Vor-Facelift</button><button type="button" data-v="fl">Facelift</button><button type="button" data-v="" class="on">Unbekannt</button></div></div>
  <div><span class="lbl">Baujahr von</span><input id="${p}from" type="number" min="1900" max="2100" placeholder="z. B. 2015"></div>
  <div><span class="lbl">Baujahr bis</span><input id="${p}to" type="number" min="1900" max="2100" placeholder="leer = bis heute"></div>
@@ -348,19 +511,17 @@ const segSet=(el,v)=>[...el.children].forEach(x=>x.classList.toggle('on',x.datas
 function readForm(p){const n=v=>v===''?null:+v;return{brand:$(p+'brand').value.trim(),model:$(p+'model').value.trim(),gen:$(p+'gen').value.trim(),body:$(p+'body').value.trim(),
   facelift:segVal($(p+'fl')),from:n($(p+'from').value),to:n($(p+'to').value),view:$(p+'view').value,color:$(p+'color').value.trim(),
   specs:[...new Set($(p+'specs').value.split(',').map(s=>s.trim()).filter(Boolean))],notes:$(p+'notes').value.trim(),verified:$(p+'verified').checked}}
-function fillForm(p,c){['brand','model','gen','body','view','color','notes'].forEach(k=>$(p+k).value=c[k]||'');
+function fillForm(p,c){fillCascade(p,c.brand||'',c.model||'',c.gen||'');['body','view','color','notes'].forEach(k=>$(p+k).value=c[k]||'');
   $(p+'from').value=c.from??'';$(p+'to').value=c.to??'';$(p+'specs').value=(c.specs||[]).join(', ');$(p+'verified').checked=!!c.verified;segSet($(p+'fl'),c.facelift)}
 function validate(d){if(!d.brand||!d.model)return'Marke und Modell sind Pflicht.';if(d.from&&d.to&&d.to<d.from)return'„Baujahr bis“ liegt vor „von“.';return''}
-$('tagForm').innerHTML=formHTML('u_');wireSeg($('u_fl'));
-$('editForm').innerHTML=formHTML('e_');wireSeg($('e_fl'));
+$('tagForm').innerHTML=formHTML('u_');wireSeg($('u_fl'),()=>suggestYears('u_'));
+$('editForm').innerHTML=formHTML('e_');wireSeg($('e_fl'),()=>suggestYears('e_'));
 
 const uniq=a=>[...new Set(a.filter(Boolean))].sort((x,y)=>x.localeCompare(y,'de'));
 function refreshLists(){const opt=a=>a.map(v=>`<option value="${esc(v)}">`).join('');
-  $('dlBrand').innerHTML=opt(uniq(cars.map(c=>c.brand)));
-  const b=$('u_brand').value.trim();$('dlModel').innerHTML=opt(uniq(cars.filter(c=>!b||c.brand===b).map(c=>c.model)));
-  const m=$('u_model').value.trim();$('dlGen').innerHTML=opt(uniq(cars.filter(c=>(!b||c.brand===b)&&(!m||c.model===m)).map(c=>c.gen)));
+  for(const p of ['u_','e_'])fillCascade(p,$(p+'brand').value,$(p+'model').value,$(p+'gen').value);
   $('dlBody').innerHTML=opt(uniq(['Limousine','Kombi','Touring','Avant','Coupé','Cabrio','SUV','Schrägheck','Van','Pick-up',...cars.map(c=>c.body)]))}
-['u_brand','u_model'].forEach(i=>$(i).addEventListener('change',refreshLists));
+fillCascade('u_','','','');fillCascade('e_','','','');wireCascade('u_',()=>suggestYears('u_'));wireCascade('e_',()=>suggestYears('e_'));
 
 // ---------- Einsortieren ----------
 const drop=$('drop'),fileIn=$('fileIn');
@@ -442,26 +603,91 @@ const years=c=>c.from?`${c.from}–${c.to||'heute'}`:'Baujahr ?';
 const flChip=c=>c.facelift==='fl'?'<span class="chip fl">Facelift</span>':c.facelift==='vfl'?'<span class="chip">Vor-Facelift</span>':'<span class="chip warn">FL ?</span>';
 let renderToken=0;
 function render(){const tok=++renderToken;
-  const list=cars.filter(matches).sort(SORTS[$('sort').value]);
+  const list=cars.filter(matches).sort(SORTS[$('sort').value]);lastList=list.map(c=>c.id);
   const active=[$('fText').value.trim(),$('fBrand').value,$('fModel').value,$('fGen').value,$('fView').value,fFl,$('fYear').value,fSpecs.size,$('fVerified').checked].filter(Boolean).length;
   $('fReset').textContent=active?`Filter zurücksetzen (${active})`:'Filter zurücksetzen';
   $('count').textContent=`${list.length} von ${cars.length} Bildern`;
-  $('grid').innerHTML=list.length?list.map(c=>`<div class="item" data-id="${c.id}"><img class="im" data-img="${c.id}" alt="">
+  $('grid').innerHTML=list.length?list.map(c=>`<div class="item${picked.has(c.id)?' sel':''}" data-id="${c.id}"><img class="im" data-img="${c.id}" alt=""><button class="tb pick" data-pick="${c.id}" title="Auswählen (Umschalt = Bereich)"><span></span></button><button class="tb dl" data-dl="${c.id}" title="Herunterladen">⤓</button>
     <div class="meta"><div class="t">${esc(c.brand)} ${esc(c.model)}</div>
     <div class="s">${[c.gen,years(c),c.body,c.view].filter(Boolean).map(esc).join(' · ')}</div>
     <div class="chips">${flChip(c)}${c.verified?'<span class="chip ok">✓ geprüft</span>':'<span class="chip warn">ungeprüft</span>'}${c.specs.slice(0,3).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div></div></div>`).join('')
     :`<div class="empty">${cars.length?'Keine Treffer für diese Filter.':'Noch keine Bilder. Unter „Einsortieren“ hinzufügen.'}</div>`;
   const ob=new IntersectionObserver(es=>es.forEach(async e=>{if(!e.isIntersecting)return;ob.unobserve(e.target);const c=cars.find(x=>x.id===e.target.dataset.img);
     try{const u=await thumbFor(c);if(tok===renderToken||document.contains(e.target))e.target.src=u}catch{e.target.alt='Datei fehlt'}}),{rootMargin:'400px'});
-  document.querySelectorAll('[data-img]').forEach(i=>ob.observe(i))}
-$('grid').onclick=e=>{const it=e.target.closest('[data-id]');if(it)openDlg(it.dataset.id)};
+  document.querySelectorAll('[data-img]').forEach(i=>ob.observe(i));syncPicks()}
+let lastList=[],lastPick=null;
+$('grid').onclick=e=>{
+  const pk=e.target.closest('[data-pick]');if(pk){togglePick(pk.dataset.pick,e.shiftKey);return}
+  const dl=e.target.closest('[data-dl]');if(dl){downloadOne(cars.find(c=>c.id===dl.dataset.dl));return}
+  const it=e.target.closest('[data-id]');if(!it)return;
+  if(picked.size){togglePick(it.dataset.id,e.shiftKey);return}  // im Auswahlmodus wählt ein Klick aus
+  openDlg(it.dataset.id)};
+
+// ---------- Auswahl, Download, gemeinsam ändern ----------
+const picked=new Set();
+function togglePick(id,range){
+  if(range&&lastPick&&lastList.includes(lastPick)){const a=lastList.indexOf(lastPick),b=lastList.indexOf(id);const [x,y]=a<b?[a,b]:[b,a];for(let i=x;i<=y;i++)picked.add(lastList[i])}
+  else picked.has(id)?picked.delete(id):picked.add(id);
+  lastPick=id;syncPicks()}
+function syncPicks(){for(const id of [...picked])if(!cars.some(c=>c.id===id))picked.delete(id);
+  document.querySelectorAll('#grid .item').forEach(el=>el.classList.toggle('sel',picked.has(el.dataset.id)));
+  $('selbar').classList.toggle('hidden',!picked.size||$('viewSearch').classList.contains('hidden'));
+  $('selCount').textContent=`${picked.size} ausgewählt`;$('selAllVis').textContent=`Alle ${lastList.length} Treffer auswählen`}
+$('selNone').onclick=()=>{picked.clear();syncPicks()};
+$('selAllVis').onclick=()=>{lastList.forEach(id=>picked.add(id));syncPicks()};
+const dlName=c=>fileName(c,extOf(c.file||c.originalName)).replace(/^\d{4}-\d\d-\d\d_\d{4}_/,'');
+async function downloadOne(c){const a=document.createElement('a');a.href=await urlFor(c);a.download=dlName(c);a.click()}
+// ZIP ohne Kompression (Bilder sind schon komprimiert) – keine externe Bibliothek nötig
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+async function makeZip(files){const enc=new TextEncoder(),parts=[],cen=[];let off=0;
+  for(const f of files){const data=new Uint8Array(await f.blob.arrayBuffer()),name=enc.encode(f.name),crc=crc32(data);
+    const l=new DataView(new ArrayBuffer(30));[[0,0x04034b50,4],[4,20,2],[6,0x0800,2],[8,0,2],[10,0,2],[12,0x21,2],[14,crc,4],[18,data.length,4],[22,data.length,4],[26,name.length,2],[28,0,2]].forEach(([o,v,n])=>n===4?l.setUint32(o,v,true):l.setUint16(o,v,true));
+    const c=new DataView(new ArrayBuffer(46));[[0,0x02014b50,4],[4,20,2],[6,20,2],[8,0x0800,2],[10,0,2],[12,0,2],[14,0x21,2],[16,crc,4],[20,data.length,4],[24,data.length,4],[28,name.length,2],[30,0,2],[32,0,2],[34,0,2],[36,0,2],[38,0,4],[42,off,4]].forEach(([o,v,n])=>n===4?c.setUint32(o,v,true):c.setUint16(o,v,true));
+    parts.push(l,name,data);cen.push(c,name);off+=30+name.length+data.length}
+  const size=cen.reduce((s,x)=>s+x.byteLength,0),e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,size,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cen,e],{type:'application/zip'})}
+$('selZip').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));if(!sel.length)return;
+  if(sel.length===1)return downloadOne(sel[0]);
+  toast(`ZIP wird erstellt … (${sel.length} Bilder)`);const used=new Map(),files=[];let miss=0;
+  for(const c of sel){let n=dlName(c);const k=n.toLowerCase();if(used.has(k)){used.set(k,used.get(k)+1);n=n.replace(/(\.\w+)$/,`-${used.get(k)}$1`)}else used.set(k,1);
+    try{files.push({name:n,blob:await store.blob(c)})}catch{miss++}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(await makeZip(files));a.download=`Autobilder-${new Date().toISOString().slice(0,10)}-${files.length}.zip`;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),60000);toast(miss?`ZIP fertig · ${miss} Dateien fehlten`:`✓ ZIP mit ${files.length} Bildern`,!!miss)};
+$('selDel').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));if(!sel.length||!confirm(`${sel.length} Bilder ${store.mode==='dir'?'in den Papierkorb der Mediathek legen':'löschen'}?`))return;
+  saving=true;let ok=0;try{for(const c of sel){try{await store.remove(c);cars=cars.filter(x=>x!==c);ok++}catch(e){console.warn(e)}}}finally{saving=false}
+  picked.clear();refreshLists();fillFilters();render();updateStatus();syncPicks();toast(ok===sel.length?`✓ ${ok} gelöscht`:`${ok} von ${sel.length} gelöscht`,ok!==sel.length)};
+
+// Gemeinsam ändern: dieselbe Speicherlogik wie beim Einzelbild (store.update), nur ausgefüllte Felder ändern sich
+$('b_view').innerHTML='<option value="keep">– unverändert –</option>'+VIEWS.map(v=>`<option value="${v}">${v||'– (leer)'}</option>`).join('');
+wireSeg($('b_fl'),()=>bulkYears());wireSeg($('b_ver'));wireCascade('b_',()=>bulkYears());
+function bulkYears(){if(!$('b_gen').value)return;const f=segVal($('b_fl'));const g=genInfo($('b_brand').value,$('b_model').value,$('b_gen').value);if(!g||!g.from)return;
+  let from=g.from,to=g.to;if(g.fl&&f==='vfl')to=g.fl;else if(g.fl&&f==='fl')from=g.fl;$('b_from').value=from;$('b_to').value=to??''}
+$('selEdit').onclick=()=>{fillCascade('b_','','','','keep');segSet($('b_fl'),'keep');segSet($('b_ver'),'keep');['b_from','b_to','b_body','b_addSpecs','b_rmSpecs'].forEach(i=>$(i).value='');$('b_view').value='keep';
+  $('bulkTitle').textContent=picked.size===1?'1 Bild ändern':`${picked.size} Bilder gemeinsam ändern`;$('bulkDlg').showModal()};
+$('bulkClose').onclick=()=>$('bulkDlg').close();
+$('bulkSave').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));const ch={};
+  const b=$('b_brand').value,m=$('b_model').value;if(b){if(!m)return toast('Bitte auch ein Modell wählen',true);Object.assign(ch,{brand:b,model:m,gen:$('b_gen').value})}
+  const f=segVal($('b_fl'));if(f!=='keep')ch.facelift=f;
+  if($('b_from').value!=='')ch.from=+$('b_from').value;if($('b_to').value!=='')ch.to=+$('b_to').value;
+  if($('b_body').value.trim())ch.body=$('b_body').value.trim();if($('b_view').value!=='keep')ch.view=$('b_view').value;
+  const v=segVal($('b_ver'));if(v!=='keep')ch.verified=v==='1';
+  const add=$('b_addSpecs').value.split(',').map(x=>x.trim()).filter(Boolean),rm=$('b_rmSpecs').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
+  if(!Object.keys(ch).length&&!add.length&&!rm.length)return toast('Nichts zum Ändern ausgefüllt',true);
+  saving=true;$('bulkSave').disabled=true;let ok=0,fail=0;
+  try{for(const c of sel){const next={...c,...ch};next.specs=[...new Set([...c.specs.filter(x=>!rm.includes(x.toLowerCase())),...add])];
+      const err=validate(next);if(err){fail++;continue}
+      const before={...c};Object.assign(c,next,{editedAt:new Date().toISOString()});
+      try{await store.update(c);ok++}catch(e){Object.assign(c,before);fail++}}}
+  finally{saving=false;$('bulkSave').disabled=false}
+  refreshLists();fillFilters();render();$('bulkDlg').close();toast(fail?`${ok} geändert, ${fail} nicht möglich`:`✓ ${ok} Bilder geändert`,!!fail)};
 
 // ---------- Detail ----------
 let cur=null;
-async function openDlg(id){cur=cars.find(c=>c.id===id);fillForm('e_',cur);$('dImg').removeAttribute('src');$('dlg').showModal();
+async function openDlg(id){cur=cars.find(c=>c.id===id);fillForm('e_',cur);editSnap=JSON.stringify(readForm('e_'));$('dImg').removeAttribute('src');$('dlg').showModal();
   $('dInfo').textContent=`${cur.originalName||''}${cur.width?` · ${cur.width}×${cur.height}`:''}${cur.resizedFrom?` (verkleinert von ${cur.resizedFrom.split(' → ')[0]})`:''} · hinzugefügt ${new Date(cur.importedAt).toLocaleDateString('de-DE')}${cur.editedAt?' · geändert '+new Date(cur.editedAt).toLocaleDateString('de-DE'):''}${cur._rel?' · '+cur._rel+'/'+cur.file:''}`;
   try{$('dImg').src=await urlFor(cur)}catch{toast('Bilddatei fehlt in der Mediathek',true)}}
-$('dClose').onclick=()=>$('dlg').close();
 $('dSave').onclick=async()=>{const d=readForm('e_'),err=validate(d);if(err)return toast(err,true);
   const before={...cur};Object.assign(cur,d,{editedAt:new Date().toISOString()});
   try{await store.update(cur)}catch(e){Object.assign(cur,before);return toast('Speichern fehlgeschlagen: '+e.message,true)}
@@ -469,11 +695,44 @@ $('dSave').onclick=async()=>{const d=readForm('e_'),err=validate(d);if(err)retur
 $('dDel').onclick=async()=>{if(!confirm(store.mode==='dir'?'Bild in den Papierkorb der Mediathek legen?':'Bild wirklich löschen?'))return;
   try{await store.remove(cur)}catch(e){return toast('Löschen fehlgeschlagen: '+e.message,true)}
   URL.revokeObjectURL(urls.get(cur.id));urls.delete(cur.id);cars=cars.filter(c=>c!==cur);refreshLists();fillFilters();render();updateStatus();$('dlg').close()};
-$('dDl').onclick=async()=>{const a=document.createElement('a');a.href=await urlFor(cur);a.download=fileName(cur,extOf(cur.file||cur.originalName)).replace(/^\d{4}-\d\d-\d\d_\d{4}_/,'');a.click()};
+$('dDl').onclick=()=>downloadOne(cur);
+
+// ---------- Marken & Modelle (eigene Einträge) ----------
+function renderCat(){const n=Object.values(parsedCat).reduce((s,b)=>s+Object.values(b).reduce((t,g)=>t+g.length,0),0);
+  $('catInfo').textContent=`Eingebaut: ${catBrands().length} Marken, ${n} Generationen mit Bauzeit und Facelift-Jahr (Vorschläge, im Formular änderbar). Hier ergänzt du, was fehlt.`;
+  $('dlCatBrand').innerHTML=catBrands().map(v=>`<option value="${esc(v)}">`).join('');
+  $('dlCatModel').innerHTML=catModels($('c_brand').value.trim()).map(v=>`<option value="${esc(v)}">`).join('');
+  const list=[...ownCat].sort((a,b)=>okey(a).localeCompare(okey(b),'de'));
+  $('catList').innerHTML=list.length?list.map(o=>`<div class="catrow"><span>${esc(o.brand)}${o.model?' › '+esc(o.model):''}${o.gen?' › '+esc(genLabel(o)):''}</span><button data-rm="${esc(okey(o))}" title="Entfernen">×</button></div>`).join(''):'<div class="catrow"><span class="hint">Noch keine eigenen Einträge.</span></div>'}
+function openCat(pre={}){['c_brand','c_model','c_gen','c_from','c_to','c_fl'].forEach(i=>$(i).value='');$('c_brand').value=pre.brand||'';$('c_model').value=pre.model||'';renderCat();
+  if(!$('catDlg').open)$('catDlg').showModal();($(pre.focus==='gen'?'c_gen':pre.focus==='model'&&pre.brand?'c_model':'c_brand')).focus()}
+$('c_brand').addEventListener('input',renderCat);
+$('libCat').onclick=()=>{$('libDlg').close();openCat()};$('catClose').onclick=()=>$('catDlg').close();
+$('catAdd').onclick=async()=>{const n=v=>v===''?null:+v;
+  const e={brand:$('c_brand').value.trim(),model:$('c_model').value.trim(),gen:$('c_gen').value.trim(),from:n($('c_from').value),to:n($('c_to').value),fl:n($('c_fl').value),added:new Date().toISOString()};
+  if(!e.brand)return toast('Bitte eine Marke angeben',true);if(e.gen&&!e.model)return toast('Für eine Generation bitte auch das Modell angeben',true);
+  if(e.from&&e.to&&e.to<e.from)return toast('„bis“ liegt vor „von“',true);if(e.fl&&e.from&&(e.fl<e.from||(e.to&&e.fl>e.to)))return toast('Facelift-Jahr liegt außerhalb der Bauzeit',true);
+  if(!e.model)delete e.model;if(!e.gen){delete e.gen;delete e.from;delete e.to;delete e.fl}
+  ownCat=[...ownCat.filter(o=>okey(o)!==okey(e)),e];
+  try{await store.saveOwnCat(ownCat)}catch(err){return toast('Speichern fehlgeschlagen: '+err.message,true)}
+  refreshLists();renderCat();['c_gen','c_from','c_to','c_fl'].forEach(i=>$(i).value='');if(!e.gen)$('c_model').value='';
+  toast(`✓ ${[e.brand,e.model,e.gen].filter(Boolean).join(' › ')} hinzugefügt`)};
+$('catList').onclick=async e=>{const b=e.target.closest('[data-rm]');if(!b)return;ownCat=ownCat.filter(o=>okey(o)!==b.dataset.rm);
+  try{await store.saveOwnCat(ownCat)}catch(err){toast(err.message,true)}refreshLists();renderCat()};
+
+// ---------- Fenster: Klick daneben oder Esc schließt ----------
+let editSnap='';
+function guardEdit(){return JSON.stringify(readForm('e_'))===editSnap||confirm('Änderungen verwerfen?')}
+for(const id of ['dlg','libDlg','catDlg','bulkDlg']){const d=$(id);
+  d.addEventListener('click',e=>{if(e.target!==d)return;const r=d.getBoundingClientRect();
+    if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)return;
+    if(id==='dlg'&&!guardEdit())return;d.close()});
+  d.addEventListener('cancel',e=>{if(id==='dlg'&&!guardEdit())e.preventDefault()})}
+$('dClose').onclick=()=>{if(guardEdit())$('dlg').close()};
 
 // ---------- Tabs ----------
 function tab(s){$('viewUp').classList.toggle('hidden',s);$('viewSearch').classList.toggle('hidden',!s);$('tabUp').classList.toggle('on',!s);$('tabSearch').classList.toggle('on',s);if(s){fillFilters();render()}}
-$('tabUp').onclick=()=>tab(false);$('tabSearch').onclick=()=>tab(true);
+$('tabUp').onclick=()=>{tab(false);syncPicks()};$('tabSearch').onclick=()=>{tab(true);syncPicks()};
 
 // ---------- Mediathek ----------
 async function openDirLibrary(handle,{create}){
