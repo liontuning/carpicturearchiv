@@ -1,11 +1,13 @@
 {
-  "version": "1.4.0",
-  "build": 6,
+  "version": "1.5.0",
+  "build": 7,
   "date": "2026-11-06",
   "notes": [
-    "Einstellungen mit Mediathek, Marken & Modelle, Updates und Sicherung",
-    "Update-Hinweis wie bei archivn: prüft beim Start und alle 30 Minuten",
-    "Marken, Modelle und Generationen als Auswahllisten mit Baujahr und Facelift-Jahr",
-    "Download-Knopf an jeder Kachel, Mehrfachauswahl, ZIP, gemeinsam ändern"
+    "Auswahllisten: Marke, Modell und Generation als Spalten, mit Hinzufügen, Entfernen und eigener Reihenfolge",
+    "Karosserie, Ansicht und Tags als bearbeitbare Listen",
+    "Tags wie R-Line oder M-Paket mit Vorschlägen und „Hinzufügen“",
+    "Suche ignoriert Groß-/Kleinschreibung und Bindestriche („r line“ findet „R-Line“)",
+    "Filter Alle / Geprüft / Ungeprüft",
+    "Schmales Fenster: Kacheln überdecken die Filter nicht mehr"
   ]
 }

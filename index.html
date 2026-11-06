@@ -73,9 +73,10 @@ input::placeholder,textarea::placeholder{color:var(--dim)}
 .form>*,.form3>*,.upwrap>*,.search>*{min-width:0}
 select{min-width:0;max-width:100%;text-overflow:ellipsis}
 .search{display:grid;grid-template-columns:280px 1fr;gap:var(--m)}
-@media (max-width:860px){.search{grid-template-columns:1fr}.filters{position:static}}
 @media (max-width:640px){header{position:static}header h1{width:100%;margin:0}.tabs{flex:1}.tabs button{flex:1}.status{order:3;flex:none;width:100%}.form{grid-template-columns:1fr}.btn.pri{width:100%}.dlg .row button{flex:1}}
 .filters{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:96px;max-height:calc(100vh - 112px);overflow-y:auto;scrollbar-gutter:stable}
+/* schmal: Filter über den Treffern, nicht klebend (sonst liegen Kacheln darüber) */
+@media (max-width:860px){.search{grid-template-columns:1fr}.filters{position:static;max-height:none;overflow:visible}}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,var(--tile));gap:var(--m)}
 @media (max-width:560px){:root{--tile:calc(50vw - 24px)}}
 .item{position:relative;width:var(--tile);background:var(--surface);border-radius:var(--r);overflow:hidden;cursor:pointer;border:2px solid transparent}
@@ -94,11 +95,45 @@ select{min-width:0;max-width:100%;text-overflow:ellipsis}
 .upd ul{margin:4px 0;padding:0;list-style:none;max-height:180px;overflow-y:auto}
 .upd li{position:relative;padding-left:14px;font-size:16px;font-weight:500;margin:2px 0}
 .upd li::before{content:"";position:absolute;left:0;top:.6em;width:6px;height:2px;background:var(--acc)}
-.catlist{height:260px;overflow-y:auto;margin-top:12px;border-top:1px solid var(--line)}
-.catrow{display:flex;align-items:center;gap:var(--gap);height:44px;border-bottom:1px solid var(--line);font-size:16px}
-.catrow span{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.catrow button{width:40px;padding:0}
 .form3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px var(--m)}
+.tagf{position:relative}
+.tagchips{display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;height:76px;overflow-y:auto;margin-top:6px;padding:6px;border:1px dashed var(--line);border-radius:var(--r)}
+.tagchips:empty::before{content:"Noch keine Tags";color:var(--dim);font-size:15px;font-weight:500;line-height:28px;padding-left:4px}
+.tag{display:inline-flex;align-items:center;height:28px;padding:0 0 0 10px;border-radius:6px;background:var(--hi);font-size:16px;white-space:nowrap}
+.tag button{width:26px;height:28px;padding:0;background:transparent;color:var(--dim);font-size:13px}
+.tag button:hover{background:transparent;color:var(--text)}
+.tagdrop{position:absolute;left:0;right:0;top:calc(var(--ctl) + 4px);z-index:30;max-height:266px;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 8px 24px #000a}
+.topt{height:44px;line-height:44px;padding:0 12px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:17px}
+.topt.on{background:var(--hi);box-shadow:inset 3px 0 0 var(--acc)}
+.topt.neu{color:var(--acc)}
+.ctabs{max-width:640px;margin-bottom:var(--m)}
+.cpane{height:470px}
+.ccols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--m)}
+.ccols.one{grid-template-columns:minmax(0,440px)}
+.ccol{display:flex;flex-direction:column;min-width:0}
+.ccol .lbl{display:flex;justify-content:space-between;gap:8px}
+.ccol .lbl i{font-style:normal;color:var(--dim);min-width:5ch;text-align:right}
+.clist{height:308px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);scrollbar-gutter:stable}
+.crow{display:flex;align-items:center;height:44px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;-webkit-user-select:none}
+.crow:hover{background:#1c1b1a}
+.crow.on{background:var(--hi);box-shadow:inset 4px 0 0 var(--acc)}
+.crow.on .n{color:#fff}
+.crow.dt{box-shadow:inset 0 3px 0 var(--acc)}
+.crow.dt.end{box-shadow:inset 0 -3px 0 var(--acc)}
+.crow .h{width:26px;flex:none;text-align:center;color:var(--dim);cursor:grab;font-size:15px;letter-spacing:-2px}
+.crow .n{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:17px}
+.crow .n small{color:var(--dim);font-size:14px;font-weight:500;margin-left:6px}
+.crow button{width:30px;height:40px;padding:0;background:transparent;color:var(--dim);font-size:16px;flex:none}
+.crow button:hover{background:transparent;color:var(--text)}
+.crow button[data-a=rm]:hover{color:var(--err)}
+.crow button:disabled{opacity:.25}
+.cempty{padding:12px;color:var(--dim);font-size:15px;font-weight:500}
+.cadd{display:flex;gap:8px;margin-top:8px}
+.cadd input{flex:1;min-width:0}
+.cadd button{width:var(--ctl);padding:0;font-size:22px;flex:none}
+.gedit{display:grid;grid-template-columns:minmax(0,1.6fr) repeat(3,minmax(0,1fr)) auto;gap:8px var(--gap);align-items:end;margin-top:var(--m);height:68px}
+.gedit .gname{height:var(--ctl);display:flex;align-items:center;font-size:18px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+@media (max-width:760px){#catInfo{height:auto!important}.cpane{height:auto}.ccols{grid-template-columns:minmax(0,1fr)}.clist{height:220px}.gedit{grid-template-columns:repeat(3,minmax(0,1fr));height:auto}.gedit>:first-child,.gedit>:last-child{grid-column:1/-1}}
 @media (max-width:640px){.form3{grid-template-columns:1fr 1fr}}
 .item:hover{border-color:var(--line)}
 .item .im{width:100%;aspect-ratio:4/3;background:var(--hi);display:block;object-fit:cover}
@@ -162,6 +197,7 @@ dialog::backdrop{background:#000c}
 <section id="viewSearch" class="hidden">
   <div class="search">
     <div class="card filters">
+      <div><span class="lbl">Angaben</span><div class="seg" id="fVer"><button data-v="" class="on">Alle</button><button data-v="1">Geprüft</button><button data-v="0">Ungeprüft</button></div></div>
       <div><span class="lbl">Freitext</span><input id="fText" placeholder="z. B. 330i rot touring"></div>
       <div><span class="lbl">Marke</span><select id="fBrand"></select></div>
       <div><span class="lbl">Modell</span><select id="fModel"></select></div>
@@ -170,7 +206,6 @@ dialog::backdrop{background:#000c}
       <div><span class="lbl">Gebaut im Jahr</span><input id="fYear" type="number" min="1900" max="2100" placeholder="z. B. 2017"></div>
       <div><span class="lbl">Ansicht</span><select id="fView"></select></div>
       <div><span class="lbl">Spezifikationen (alle müssen passen)</span><div class="chips" id="fSpecs" style="height:96px;overflow-y:auto;align-content:flex-start"></div></div>
-      <label class="chk"><input type="checkbox" id="fVerified"> Nur geprüfte Angaben</label>
       <button id="fReset">Filter zurücksetzen</button>
     </div>
     <div>
@@ -205,8 +240,8 @@ dialog::backdrop{background:#000c}
   </section>
   <section class="set">
     <span class="lbl">Marken &amp; Modelle</span>
-    <p class="hint">Eingebaute Auswahllisten mit Bauzeit und Facelift-Jahr. Fehlt etwas, kannst du es hier ergänzen.</p>
-    <div class="row"><button id="libCat">Marken &amp; Modelle bearbeiten</button></div>
+    <p class="hint">Marken, Modelle und Generationen mit Bauzeit und Facelift-Jahr, dazu Karosserie und Ansicht. Ergänzen, entfernen, Reihenfolge ändern.</p>
+    <div class="row"><button id="libCat">Auswahllisten bearbeiten</button></div>
   </section>
   <section class="set">
     <span class="lbl">App &amp; Updates</span>
@@ -238,21 +273,29 @@ dialog::backdrop{background:#000c}
   <button id="selNone">Auswahl aufheben</button>
 </div>
 
-<dialog id="catDlg" style="max-width:min(760px,96vw)"><div style="padding:var(--m)">
-  <h2 style="margin:0 0 6px;font-size:26px">Marken &amp; Modelle</h2>
-  <p class="hint" style="margin:0 0 var(--m);min-height:2.6em" id="catInfo"></p>
-  <div class="form3">
-    <div><span class="lbl">Marke *</span><input id="c_brand" list="dlCatBrand" autocomplete="off" placeholder="z. B. BMW"></div>
-    <div><span class="lbl">Modell</span><input id="c_model" list="dlCatModel" autocomplete="off" placeholder="z. B. 3er"></div>
-    <div><span class="lbl">Generation</span><input id="c_gen" autocomplete="off" placeholder="z. B. G20/G21"></div>
-    <div><span class="lbl">Bauzeit von</span><input id="c_from" type="number" min="1900" max="2100" placeholder="z. B. 2019"></div>
-    <div><span class="lbl">Bauzeit bis</span><input id="c_to" type="number" min="1900" max="2100" placeholder="leer = läuft noch"></div>
-    <div><span class="lbl">Facelift ab Jahr</span><input id="c_fl" type="number" min="1900" max="2100" placeholder="leer = keins"></div>
+<dialog id="catDlg" style="width:min(1120px,96vw);max-width:96vw"><div style="padding:var(--m)">
+  <div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0;font-size:26px">Auswahllisten</h2><button id="catClose">Schließen</button></div>
+  <p class="hint" style="margin:0 0 var(--m);height:2.6em;overflow:hidden" id="catInfo">Marke anklicken, dann Modell, dann Generation. Reihenfolge per Ziehen oder mit ▲▼ ändern. Sie gilt auch im Formular und auf allen Rechnern.</p>
+  <div class="seg ctabs" id="catTabs"><button type="button" data-v="cat" class="on">Marken &amp; Modelle</button><button type="button" data-v="bodies">Karosserie</button><button type="button" data-v="views">Ansicht</button><button type="button" data-v="tags">Tags</button></div>
+  <div class="cpane" id="paneCat"><div class="ccols">
+    <div class="ccol"><span class="lbl"><span>Marke</span><i class="num" id="cn_b"></i></span><div class="clist" id="cl_b" data-k="b"></div>
+      <div class="cadd"><input id="ca_b" autocomplete="off" placeholder="Neue Marke"><button id="cb_b" title="Hinzufügen" aria-label="Hinzufügen">＋</button></div></div>
+    <div class="ccol"><span class="lbl"><span>Modell</span><i class="num" id="cn_m"></i></span><div class="clist" id="cl_m" data-k="m"></div>
+      <div class="cadd"><input id="ca_m" autocomplete="off" placeholder="Neues Modell"><button id="cb_m" title="Hinzufügen" aria-label="Hinzufügen">＋</button></div></div>
+    <div class="ccol"><span class="lbl"><span>Generation</span><i class="num" id="cn_g"></i></span><div class="clist" id="cl_g" data-k="g"></div>
+      <div class="cadd"><input id="ca_g" autocomplete="off" placeholder="Neue Generation, z. B. G20"><button id="cb_g" title="Hinzufügen" aria-label="Hinzufügen">＋</button></div></div>
   </div>
-  <div class="row" style="margin-top:var(--m)"><button class="btn pri" id="catAdd" style="min-width:0;height:var(--ctl);font-size:17px">Hinzufügen</button><span class="hint">Nur Marke = neue Marke · Marke + Modell = neues Modell · mit Generation = neue Generation</span></div>
-  <span class="lbl" style="margin-top:var(--m)">Eigene Einträge (gelten auf allen Rechnern)</span>
-  <div class="catlist" id="catList"></div>
-  <div class="row" style="justify-content:flex-end;margin-top:var(--m)"><button id="catClose">Schließen</button></div>
+    <div class="gedit">
+      <div style="min-width:0"><span class="lbl">Bauzeit &amp; Facelift für</span><div class="gname" id="ge_name">–</div></div>
+      <div><span class="lbl">Bauzeit von</span><input id="ge_from" type="number" min="1900" max="2100" placeholder="z. B. 2019"></div>
+      <div><span class="lbl">Bauzeit bis</span><input id="ge_to" type="number" min="1900" max="2100" placeholder="läuft noch"></div>
+      <div><span class="lbl">Facelift ab</span><input id="ge_fl" type="number" min="1900" max="2100" placeholder="keins"></div>
+      <button id="ge_save">Übernehmen</button>
+    </div></div>
+  <div class="cpane hidden" id="paneList"><div class="ccols one">
+    <div class="ccol"><span class="lbl"><span><span id="cl_title">Karosserie</span></span><i class="num" id="cn_l"></i></span><div class="clist" id="cl_l" data-k="l"></div>
+      <div class="cadd"><input id="ca_l" autocomplete="off" placeholder="Neuer Eintrag"><button id="cb_l" title="Hinzufügen" aria-label="Hinzufügen">＋</button></div></div>
+  </div></div>
 </div></dialog>
 
 <dialog id="bulkDlg" style="max-width:min(760px,96vw)"><div style="padding:var(--m)">
@@ -265,17 +308,17 @@ dialog::backdrop{background:#000c}
     <div class="full"><span class="lbl">Facelift</span><div class="seg" id="b_fl"><button type="button" data-v="keep" class="on">Unverändert</button><button type="button" data-v="vfl">Vor-Facelift</button><button type="button" data-v="fl">Facelift</button><button type="button" data-v="">Unbekannt</button></div></div>
     <div><span class="lbl">Baujahr von</span><input id="b_from" type="number" min="1900" max="2100" placeholder="unverändert"></div>
     <div><span class="lbl">Baujahr bis</span><input id="b_to" type="number" min="1900" max="2100" placeholder="unverändert"></div>
-    <div><span class="lbl">Karosserie</span><input id="b_body" list="dlBody" placeholder="unverändert"></div>
+    <div><span class="lbl">Karosserie</span><select id="b_body"></select></div>
     <div><span class="lbl">Ansicht</span><select id="b_view"></select></div>
-    <div><span class="lbl">Spezifikationen hinzufügen</span><input id="b_addSpecs" placeholder="z. B. M-Paket, xDrive"></div>
-    <div><span class="lbl">Spezifikationen entfernen</span><input id="b_rmSpecs" placeholder="z. B. 330i"></div>
+    <div class="full"><span class="lbl">Tags hinzufügen</span><div id="b_addSpecs"></div></div>
+    <div class="full"><span class="lbl">Tags entfernen</span><div id="b_rmSpecs"></div></div>
     <div class="full"><span class="lbl">Angaben geprüft</span><div class="seg" id="b_ver"><button type="button" data-v="keep" class="on">Unverändert</button><button type="button" data-v="1">Ja, geprüft</button><button type="button" data-v="0">Nein, ungeprüft</button></div></div>
   </div>
   <div class="row" style="margin-top:var(--m)"><button class="btn pri" id="bulkSave">Übernehmen</button><button id="bulkClose">Abbrechen</button></div>
 </div></dialog>
 
 <div id="toast"></div>
-<datalist id="dlBody"></datalist><datalist id="dlCatBrand"></datalist><datalist id="dlCatModel"></datalist>
+
 
 <script>
 'use strict';
@@ -319,7 +362,8 @@ const BrowserStore={mode:'browser',name:'Dieser Browser',
   async update(r){await req(os('cars','readwrite').put({...JSON.parse(sidecarJSON(r)),blob:r._blob}))},
   async remove(r){await req(os('cars','readwrite').delete(r.id))},
   async blob(r){return r._blob},async thumb(r){return r._blob},
-  async loadOwnCat(){return (await setting('ownCat'))||[]},async saveOwnCat(list){await setting('ownCat',list)}};
+  async loadOwnCat(){return (await setting('ownCat'))||[]},async saveOwnCat(list){await setting('ownCat',list)},
+  async loadCatDoc(){return cleanDoc(await setting('catDoc'))},async saveCatDoc(d){await setting('catDoc',d)}};
 
 // ---------- Mediathek-Ordner (File System Access, wie Loomn: Begleitdatei = Wahrheit) ----------
 const isJunk=n=>n.startsWith('.')||n.startsWith('~$')||n.endsWith('.crswap')||n.endsWith('.tmp');
@@ -379,6 +423,14 @@ function DirStore(root,meta){return{mode:'dir',name:root.name,root,meta,
     return [...map.values()].filter(e=>e.brand&&!e._removed)},
   async saveOwnCat(list){const d=await this.dir(['Archivdaten']);await this.writeFile(d,'katalog-eigene.json',JSON.stringify({schema:1,entries:list},null,2));
     for await(const [n] of d.entries())if(n!=='katalog-eigene.json'&&/^katalog-eigene.*\.json$/.test(n))await d.removeEntry(n).catch(()=>{})},
+  // Ganze Auswahllisten (Marken › Modelle › Generationen, Karosserie, Ansicht) in Archivdaten/katalog.json.
+  // Konfliktkopien von Drive („katalog (1).json“ …): die zuletzt bearbeitete gewinnt, die anderen werden beim Speichern entfernt
+  async loadCatDoc(){let d;try{d=await this.dir(['Archivdaten'],false)}catch{return null}let best=null;
+    for await(const [n,h] of d.entries()){if(h.kind!=='file'||!/^katalog(?!-eigene).*\.json$/.test(n))continue;
+      try{const o=cleanDoc(JSON.parse(await (await h.getFile()).text()));if(o&&(!best||String(o.editedAt)>String(best.editedAt)))best=o}catch{}}
+    return best},
+  async saveCatDoc(doc){const d=await this.dir(['Archivdaten']);await this.writeFile(d,'katalog.json',JSON.stringify(doc,null,1));
+    for await(const [n] of d.entries())if(n!=='katalog.json'&&/^katalog(?!-eigene).*\.json$/.test(n))await d.removeEntry(n).catch(()=>{})},
   // Vorschaubild (480 px) aus Archivdaten/Vorschauen, fehlt es, wird es erzeugt
   async thumb(r){try{return await (await (await this.dir(['Archivdaten','Vorschauen'],false)).getFileHandle(r.id+'.jpg')).getFile()}catch{}
     const b=await this.blob(r);try{const t=await makeThumb(b);this.writeFile(await this.dir(['Archivdaten','Vorschauen']),r.id+'.jpg',t).catch(()=>{});return t}catch{return b}}
@@ -408,7 +460,7 @@ const sig=list=>list.map(c=>c.id+'|'+(c._stamp||'')+'|'+(c._dupes||[]).map(x=>x[
 let scanning=false,lastScan=0;
 async function rescan(force){if(store.mode!=='dir'||scanning||saving)return;if(!force&&Date.now()-lastScan<5000)return;
   scanning=true;lastScan=Date.now();
-  try{try{const oc=await store.loadOwnCat();if(JSON.stringify(oc)!==JSON.stringify(ownCat)){ownCat=oc;refreshLists();renderCat()}}catch{}
+  try{try{if(!catBusy){const d=await store.loadCatDoc();if(d&&!catBusy&&JSON.stringify(d)!==JSON.stringify(catDoc)){catDoc=d;refreshLists();if($('catDlg').open)renderCat()}}}catch{}
     const fresh=await store.list();if(sig(fresh)===sig(cars))return;
     const keep=new Set(fresh.map(ukey));for(const m of [urls,thumbs])for(const [k,u] of m)if(!keep.has(k)){URL.revokeObjectURL(u);m.delete(k)}
     cars=fresh;if(cur&&$('dlg').open){const n=cars.find(c=>c.id===cur.id);if(n)cur=n;else{$('dlg').close();toast('Dieses Bild wurde auf einem anderen Rechner gelöscht',true)}}
@@ -419,7 +471,7 @@ setInterval(()=>{if(document.visibilityState==='visible')rescan()},30000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')rescan()});
 window.addEventListener('focus',()=>rescan());
 
-async function useStore(s){store=s;dropUrls();cars=await s.list();try{ownCat=await s.loadOwnCat()}catch{ownCat=[]}try{catalog=(await setting('catalog'))||{}}catch{catalog={}}
+async function useStore(s){store=s;dropUrls();cars=await s.list();try{ownCat=await s.loadOwnCat()}catch{ownCat=[]}try{catDoc=await s.loadCatDoc()}catch{catDoc=null}try{catalog=(await setting('catalog'))||{}}catch{catalog={}}
   if(catalog.lastInput)fillForm('u_',{...catalog.lastInput,verified:false});
   updateStatus();refreshLists();fillFilters();render();queue.forEach(markDup);renderQueue()}
 function updateStatus(lost){const dir=store.mode==='dir';$('dot').className='dot '+(dir&&!lost?'on':'warn');if(lost){$('statusTxt').textContent='Mediathek nicht erreichbar';return}
@@ -482,13 +534,32 @@ function parseGens(str){return str.split('|').map(g=>{const p=g.split(':');let c
 for(const b in CAT_MODELS){parsedCat[b]={};for(const m in CAT_MODELS[b])parsedCat[b][m]=parseGens(CAT_MODELS[b][m])}
 let ownCat=[];
 const okey=o=>[o.brand,o.model||'',o.gen||''].join('|').toLowerCase();
-function catBrands(){return uniq([...Object.keys(parsedCat),...CAT_EXTRA_BRANDS,...ownCat.map(o=>o.brand),...cars.map(c=>c.brand)])}
-function catModels(b){if(!b)return[];return uniq([...Object.keys(parsedCat[b]||{}),...ownCat.filter(o=>o.brand===b&&o.model).map(o=>o.model),...cars.filter(c=>c.brand===b).map(c=>c.model)])}
-function catGens(b,m){if(!b||!m)return[];const map=new Map();
-  for(const g of (parsedCat[b]||{})[m]||[])map.set(g.gen,g);
-  for(const o of ownCat)if(o.brand===b&&o.model===m&&o.gen&&!map.has(o.gen))map.set(o.gen,{gen:o.gen,from:o.from||null,to:o.to||null,fl:o.fl||null,own:true});
-  for(const c of cars)if(c.brand===b&&c.model===m&&c.gen&&!map.has(c.gen))map.set(c.gen,{gen:c.gen});
-  return [...map.values()].sort((x,y)=>(x.from||9999)-(y.from||9999)||x.gen.localeCompare(y.gen,'de'))}
+// Auswahllisten: solange nichts bearbeitet wurde, gilt der eingebaute Katalog (+ eigene Einträge aus Version 1.4 + vorhandene Bilder).
+// Sobald etwas geändert wird, gehört die ganze Liste dir (catDoc) und wird über die Mediathek geteilt.
+let catDoc=null,catBusy=false;
+const BODIES=['Limousine','Kombi','Touring','Avant','Coupé','Cabrio','Roadster','SUV','Schrägheck','Van','Pick-up'];
+const VIEWS_DEF=VIEWS.filter(Boolean);
+const TAGS_DEF=['M-Paket','S-Line','R-Line','AMG-Line','RS-Paket','GTI','Allrad','Automatik','Panoramadach','Anhängerkupplung'];
+function cleanDoc(o){if(!o||o.schema!==2||!Array.isArray(o.brands))return null;const str=v=>typeof v==='string'&&v.trim()?v.trim():null,yr=v=>Number.isInteger(+v)&&+v>1900&&+v<2101&&v!==null&&v!==''?+v:null;
+  return{schema:2,editedAt:String(o.editedAt||''),brands:o.brands.filter(b=>str(b&&b.name)).map(b=>({name:str(b.name),models:(b.models||[]).filter(m=>str(m&&m.name)).map(m=>({name:str(m.name),
+    gens:(m.gens||[]).filter(g=>str(g&&g.gen)).map(g=>({gen:str(g.gen),from:yr(g.from),to:yr(g.to),fl:yr(g.fl)}))}))})),
+    bodies:(o.bodies||[]).map(str).filter(Boolean),views:(o.views||[]).map(str).filter(Boolean),tags:(o.tags||[]).map(str).filter(Boolean)}}
+function seedDoc(){const legacyGens=(b,m)=>{const map=new Map();for(const g of (parsedCat[b]||{})[m]||[])map.set(g.gen,{...g});
+    for(const o of ownCat)if(o.brand===b&&o.model===m&&o.gen&&!map.has(o.gen))map.set(o.gen,{gen:o.gen,from:o.from||null,to:o.to||null,fl:o.fl||null});
+    for(const c of cars)if(c.brand===b&&c.model===m&&c.gen&&!map.has(c.gen))map.set(c.gen,{gen:c.gen,from:null,to:null,fl:null});
+    return [...map.values()].sort((x,y)=>(x.from||9999)-(y.from||9999)||x.gen.localeCompare(y.gen,'de'))};
+  const brands=uniq([...Object.keys(parsedCat),...CAT_EXTRA_BRANDS,...ownCat.map(o=>o.brand),...cars.map(c=>c.brand)]);
+  return{schema:2,editedAt:'',brands:brands.map(b=>({name:b,models:uniq([...Object.keys(parsedCat[b]||{}),...ownCat.filter(o=>o.brand===b&&o.model).map(o=>o.model),...cars.filter(c=>c.brand===b).map(c=>c.model)])
+      .map(m=>({name:m,gens:legacyGens(b,m)}))})),
+    bodies:[...BODIES,...uniq(cars.map(c=>c.body)).filter(x=>!BODIES.includes(x))],views:[...VIEWS_DEF,...uniq(cars.map(c=>c.view)).filter(x=>!VIEWS_DEF.includes(x))],tags:seedTags()}}
+function seedTags(){const m=new Map();for(const t of [...TAGS_DEF,...cars.flatMap(c=>c.specs)])if(t&&!m.has(tagKey(t)))m.set(tagKey(t),t);return [...m.values()]}
+let seedCache=null;
+const curDoc=()=>catDoc||seedCache||(queueMicrotask(()=>seedCache=null),seedCache=seedDoc());
+const findB=(d,b)=>d.brands.find(x=>x.name===b),findM=(d,b,m)=>(findB(d,b)?.models||[]).find(x=>x.name===m);
+function catBrands(){return curDoc().brands.map(b=>b.name)}
+function catModels(b){if(!b)return[];return (findB(curDoc(),b)?.models||[]).map(m=>m.name)}
+function catGens(b,m){if(!b||!m)return[];return (findM(curDoc(),b,m)?.gens||[]).map(g=>({...g}))}
+function catList(k){return curDoc()[k]}
 const genLabel=g=>g.gen+(g.from?` · ${g.from}–${g.to||'heute'}`:'')+(g.fl?` · Facelift ${g.fl}`:'');
 function genInfo(b,m,gen){return catGens(b,m).find(g=>g.gen===gen)}
 const NEW='__neu__';
@@ -503,6 +574,45 @@ function fillCascade(p,brand,model,gen,keepLabel){
   $(p+'gen').innerHTML=opts(gens.map(g=>g.gen),gen,model?'– unbekannt / keine –':'– erst Modell wählen –',model?'＋ Neue Generation …':'',v=>gl[v]||v);
   $(p+'model').disabled=!brand;$(p+'gen').disabled=!model}
 // Baujahre aus Generation + Facelift vorschlagen
+// Einfache Auswahllisten (Karosserie, Ansicht); ein Wert, der nicht mehr in der Liste steht, bleibt beim Bild erhalten
+function fillSimple(id,list,cur,first,newLabel){$(id).innerHTML=opts(list,cur,first,newLabel);$(id).value=cur||''}
+function wireSimple(id,k,first){let prev='';$(id).addEventListener('focus',()=>prev=$(id).value);$(id).addEventListener('mousedown',()=>prev=$(id).value);
+  $(id).addEventListener('change',()=>{if($(id).value===NEW){$(id).value=prev;openCat({list:k,origin:id})}else prev=$(id).value})}
+// Tags (R-Line, M-Paket …): Groß-/Kleinschreibung, Bindestrich und Leerzeichen zählen beim Vergleichen und Suchen nicht
+const normS=s=>String(s||'').toLowerCase().replace(/[-_./,+]+/g,' ').replace(/\s+/g,' ').trim();
+const tagKey=s=>normS(s).replace(/ /g,'');
+const tagFields={};
+function rememberTags(list){const miss=list.filter(t=>!catList('tags').some(x=>tagKey(x)===tagKey(t)));
+  if(miss.length)editCat(d=>{for(const t of miss)if(!d.tags.some(x=>tagKey(x)===tagKey(t)))d.tags.push(t)})}
+function tagField(id,{ph='Tag eingeben oder wählen',allowNew=true}={}){
+  const root=$(id);root.classList.add('tagf');
+  root.innerHTML=`<input class="tagin" autocomplete="off" placeholder="${ph}" aria-label="Tag"><div class="tagchips"></div><div class="tagdrop hidden" role="listbox"></div>`;
+  const chips=root.querySelector('.tagchips'),inp=root.querySelector('.tagin'),drop=root.querySelector('.tagdrop');
+  let vals=[],hi=0,items=[];
+  const draw=()=>{chips.innerHTML=vals.map((v,i)=>`<span class="tag">${esc(v)}<button type="button" data-i="${i}" tabindex="-1" aria-label="${esc(v)} entfernen">✕</button></span>`).join('')};
+  const hide=()=>drop.classList.add('hidden');
+  const show=()=>{const q=inp.value.trim(),k=tagKey(q),nq=normS(q),have=new Set(vals.map(tagKey));
+    const all=catList('tags');const exact=all.find(t=>tagKey(t)===k);
+    items=all.filter(t=>!have.has(tagKey(t))&&(!k||tagKey(t).includes(k)||normS(t).includes(nq))).slice(0,60).map(t=>({t}));
+    if(q&&!exact&&!have.has(k))items.push({t:q.replace(/\s+/g,' '),neu:true});
+    if(!items.length||document.activeElement!==inp)return hide();hi=Math.max(0,Math.min(hi,items.length-1));
+    drop.innerHTML=items.map((x,i)=>`<div class="topt${x.neu?' neu':''}${i===hi?' on':''}" data-i="${i}">${x.neu?`＋ „${esc(x.t)}“ ${allowNew?'als neuen Tag hinzufügen':'übernehmen'}`:esc(x.t)}</div>`).join('');
+    drop.classList.remove('hidden');drop.querySelector('.on')?.scrollIntoView({block:'nearest'})};
+  const add=t=>{t=String(t).trim().replace(/\s+/g,' ');if(!t)return;const k=tagKey(t);
+    if(!vals.some(v=>tagKey(v)===k)){const known=catList('tags').find(x=>tagKey(x)===k);if(known)t=known;else if(allowNew)rememberTags([t]);vals.push(t);draw()}
+    inp.value='';hi=0;show()};
+  inp.addEventListener('focus',()=>{hi=0;show()});inp.addEventListener('blur',hide);
+  inp.addEventListener('input',()=>{if(inp.value.includes(',')){const parts=inp.value.split(',');const rest=parts.pop();parts.forEach(add);inp.value=rest.trimStart()}hi=0;show()});
+  inp.addEventListener('keydown',e=>{const open=!drop.classList.contains('hidden');
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(!items.length)return;e.preventDefault();hi=(hi+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;show()}
+    else if(e.key==='Enter'){e.preventDefault();if(open&&items[hi]&&(inp.value.trim()||!items[hi].neu))add(items[hi].t);else add(inp.value)}
+    else if(e.key==='Backspace'&&!inp.value&&vals.length){vals.pop();draw();show()}
+    else if(e.key==='Escape'&&open){e.preventDefault();e.stopPropagation();hide()}});
+  drop.addEventListener('mousedown',e=>{e.preventDefault();const o=e.target.closest('.topt');if(o)add(items[+o.dataset.i].t)});
+  chips.addEventListener('mousedown',e=>{const b=e.target.closest('button[data-i]');if(!b)return;e.preventDefault();vals.splice(+b.dataset.i,1);draw();show()});
+  const api={get:()=>{const r=[...vals];const t=inp.value.trim().replace(/\s+/g,' ');if(t&&!r.some(v=>tagKey(v)===tagKey(t)))r.push(t);return r},
+    set:list=>{vals=[];inp.value='';for(const t of list||[])if(t&&!vals.some(v=>tagKey(v)===tagKey(t)))vals.push(t);draw();hide()}};
+  return tagFields[id]=api}
 function suggestYears(p){const g=genInfo($(p+'brand').value,$(p+'model').value,$(p+'gen').value);if(!g||!g.from)return;
   const f=segVal($(p+'fl'));let from=g.from,to=g.to;
   if(g.fl&&f==='vfl')to=g.fl;else if(g.fl&&f==='fl')from=g.fl;
@@ -512,7 +622,7 @@ function wireCascade(p,onYears){let prev={};
   ['brand','model','gen'].forEach(k=>{$(p+k).addEventListener('focus',snap);$(p+k).addEventListener('mousedown',snap);
     $(p+k).addEventListener('change',()=>{const v=$(p+k).value;
       if(v===NEW){const back=prev;fillCascade(p,back.brand,back.model,back.gen,p==='b_'?'keep':'');
-        openCat({brand:k==='brand'?'':$(p+'brand').value,model:k==='gen'?$(p+'model').value:'',focus:k});return}
+        openCat({brand:k==='brand'?'':$(p+'brand').value,model:k==='gen'?$(p+'model').value:'',focus:k,origin:p});return}
       const b=$(p+'brand').value,m=k==='brand'?'':$(p+'model').value,g=k==='gen'?v:'';
       fillCascade(p,b,m,g,p==='b_'?'keep':'');
       if(k==='gen'&&onYears)onYears();snap()})})}
@@ -522,13 +632,13 @@ function formHTML(p){return `
  <div><span class="lbl">Marke *</span><select id="${p}brand"></select></div>
  <div><span class="lbl">Modell *</span><select id="${p}model"></select></div>
  <div class="full"><span class="lbl">Generation / Baureihe · Baujahre werden vorgeschlagen</span><select id="${p}gen"></select></div>
- <div class="full"><span class="lbl">Karosserie</span><input id="${p}body" list="dlBody" placeholder="z. B. Limousine, Touring" autocomplete="off"></div>
+ <div class="full"><span class="lbl">Karosserie</span><select id="${p}body"></select></div>
  <div class="full"><span class="lbl">Facelift</span><div class="seg" id="${p}fl"><button type="button" data-v="vfl">Vor-Facelift</button><button type="button" data-v="fl">Facelift</button><button type="button" data-v="" class="on">Unbekannt</button></div></div>
  <div><span class="lbl">Baujahr von</span><input id="${p}from" type="number" min="1900" max="2100" placeholder="z. B. 2015"></div>
  <div><span class="lbl">Baujahr bis</span><input id="${p}to" type="number" min="1900" max="2100" placeholder="leer = bis heute"></div>
- <div><span class="lbl">Ansicht</span><select id="${p}view">${VIEWS.map(v=>`<option value="${v}">${v||'–'}</option>`).join('')}</select></div>
+ <div><span class="lbl">Ansicht</span><select id="${p}view"></select></div>
  <div><span class="lbl">Farbe</span><input id="${p}color" placeholder="z. B. Alpinweiß"></div>
- <div class="full"><span class="lbl">Weitere Spezifikationen · mit Komma trennen</span><input id="${p}specs" placeholder="z. B. M-Paket, 330i, xDrive, LED"></div>
+ <div class="full"><span class="lbl">Tags · Ausstattung und Spezifikationen</span><div id="${p}specs"></div></div>
  <div class="full"><span class="lbl">Notizen / Quelle</span><textarea id="${p}notes" placeholder="z. B. Quelle, woran man das Facelift erkennt …"></textarea></div>
  <label class="chk full"><input type="checkbox" id="${p}verified"> Angaben geprüft (Modell, Facelift und Baujahr stimmen sicher)</label>`}
 function wireSeg(el,cb){el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;[...el.children].forEach(x=>x.classList.toggle('on',x===b));cb&&cb(b.dataset.v)})}
@@ -536,18 +646,23 @@ const segVal=el=>el.querySelector('.on')?.dataset.v??'';
 const segSet=(el,v)=>[...el.children].forEach(x=>x.classList.toggle('on',x.dataset.v===(v??'')));
 function readForm(p){const n=v=>v===''?null:+v;return{brand:$(p+'brand').value.trim(),model:$(p+'model').value.trim(),gen:$(p+'gen').value.trim(),body:$(p+'body').value.trim(),
   facelift:segVal($(p+'fl')),from:n($(p+'from').value),to:n($(p+'to').value),view:$(p+'view').value,color:$(p+'color').value.trim(),
-  specs:[...new Set($(p+'specs').value.split(',').map(s=>s.trim()).filter(Boolean))],notes:$(p+'notes').value.trim(),verified:$(p+'verified').checked}}
-function fillForm(p,c){fillCascade(p,c.brand||'',c.model||'',c.gen||'');['body','view','color','notes'].forEach(k=>$(p+k).value=c[k]||'');
-  $(p+'from').value=c.from??'';$(p+'to').value=c.to??'';$(p+'specs').value=(c.specs||[]).join(', ');$(p+'verified').checked=!!c.verified;segSet($(p+'fl'),c.facelift)}
+  specs:tagFields[p+'specs'].get(),notes:$(p+'notes').value.trim(),verified:$(p+'verified').checked}}
+function fillForm(p,c){fillCascade(p,c.brand||'',c.model||'',c.gen||'');fillSimple(p+'body',catList('bodies'),c.body||'','–','＋ Neue Karosserie …');fillSimple(p+'view',catList('views'),c.view||'','–','＋ Neue Ansicht …');
+  ['color','notes'].forEach(k=>$(p+k).value=c[k]||'');
+  $(p+'from').value=c.from??'';$(p+'to').value=c.to??'';tagFields[p+'specs'].set(c.specs||[]);$(p+'verified').checked=!!c.verified;segSet($(p+'fl'),c.facelift)}
 function validate(d){if(!d.brand||!d.model)return'Marke und Modell sind Pflicht.';if(d.from&&d.to&&d.to<d.from)return'„Baujahr bis“ liegt vor „von“.';return''}
 $('tagForm').innerHTML=formHTML('u_');wireSeg($('u_fl'),()=>suggestYears('u_'));
 $('editForm').innerHTML=formHTML('e_');wireSeg($('e_fl'),()=>suggestYears('e_'));
+tagField('u_specs');tagField('e_specs');tagField('b_addSpecs');tagField('b_rmSpecs',{ph:'Tag wählen',allowNew:false});
 
 const uniq=a=>[...new Set(a.filter(Boolean))].sort((x,y)=>x.localeCompare(y,'de'));
-function refreshLists(){const opt=a=>a.map(v=>`<option value="${esc(v)}">`).join('');
-  for(const p of ['u_','e_'])fillCascade(p,$(p+'brand').value,$(p+'model').value,$(p+'gen').value);
-  $('dlBody').innerHTML=opt(uniq(['Limousine','Kombi','Touring','Avant','Coupé','Cabrio','SUV','Schrägheck','Van','Pick-up',...cars.map(c=>c.body)]))}
+function refreshLists(){  for(const p of ['u_','e_']){fillCascade(p,$(p+'brand').value,$(p+'model').value,$(p+'gen').value);
+    fillSimple(p+'body',catList('bodies'),$(p+'body').value,'–','＋ Neue Karosserie …');fillSimple(p+'view',catList('views'),$(p+'view').value,'–','＋ Neue Ansicht …')}
+  if($('bulkDlg').open){fillCascade('b_',$('b_brand').value,$('b_model').value,$('b_gen').value,'keep');fillBulkSimple($('b_body').value,$('b_view').value)}}
+function fillBulkSimple(body,view){fillSimple('b_body',catList('bodies'),body,'– unverändert –','＋ Neue Karosserie …');
+  $('b_view').innerHTML='<option value="keep">– unverändert –</option><option value="">– (leer)</option>'+catList('views').map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')+`<option value="${NEW}">＋ Neue Ansicht …</option>`;$('b_view').value=view}
 fillCascade('u_','','','');fillCascade('e_','','','');wireCascade('u_',()=>suggestYears('u_'));wireCascade('e_',()=>suggestYears('e_'));
+for(const p of ['u_','e_']){fillSimple(p+'body',catList('bodies'),'','–','＋ Neue Karosserie …');fillSimple(p+'view',catList('views'),'','–','＋ Neue Ansicht …');wireSimple(p+'body','bodies');wireSimple(p+'view','views')}
 
 // ---------- Einsortieren ----------
 const drop=$('drop'),fileIn=$('fileIn');
@@ -584,7 +699,7 @@ $('queue').onclick=e=>{const x=e.target.closest('[data-x]');if(x){const i=queue.
 $('selAll').onclick=()=>{const ok=queue.filter(q=>!q.dup);const all=ok.every(q=>q.sel);ok.forEach(q=>q.sel=!all);renderQueue()};
 $('viewUp').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'&&!$('saveBtn').disabled){e.preventDefault();$('saveBtn').click()}});
 let saving=false;
-$('saveBtn').onclick=async()=>{if(saving)return;const d=readForm('u_'),err=validate(d);if(err)return toast(err,true);
+$('saveBtn').onclick=async()=>{if(saving)return;const d=readForm('u_'),err=validate(d);if(err)return toast(err,true);rememberTags(d.specs);
   saving=true;$('saveBtn').disabled=true;let ok=0;
   try{for(const q of queue.filter(q=>q.sel&&!q.dup&&q.sha)){
       if(cars.some(c=>c.sha256===q.sha||(c.origSha256&&c.origSha256===q.origSha))){q.dup='schon drin';continue}
@@ -596,19 +711,19 @@ $('saveBtn').onclick=async()=>{if(saving)return;const d=readForm('u_'),err=valid
   if(ok)toast(`✓ ${ok} gespeichert`)};
 
 // ---------- Suche (wie Loomn Query: Gruppen werden kombiniert, Spezifikationen müssen alle passen) ----------
-let fFl='',fSpecs=new Set();wireSeg($('fFl'),v=>{fFl=v;render()});
+let fFl='',fVer='',fSpecs=new Set();wireSeg($('fFl'),v=>{fFl=v;render()});wireSeg($('fVer'),v=>{fVer=v;render()});
 ['fText','fYear'].forEach(i=>$(i).oninput=render);
 ['fBrand','fModel','fGen','fView'].forEach(i=>$(i).onchange=()=>{fillFilters();render()});
-$('fVerified').onchange=render;$('sort').onchange=render;
+$('sort').onchange=render;
 $('fSpecs').onclick=e=>{const c=e.target.closest('[data-s]');if(!c)return;const s=c.dataset.s;fSpecs.has(s)?fSpecs.delete(s):fSpecs.add(s);fillFilters();render()};
-$('fReset').onclick=()=>{['fText','fYear','fBrand','fModel','fGen','fView'].forEach(i=>$(i).value='');$('fVerified').checked=false;fFl='';segSet($('fFl'),'');fSpecs.clear();fillFilters();render()};
+$('fReset').onclick=()=>{['fText','fYear','fBrand','fModel','fGen','fView'].forEach(i=>$(i).value='');fVer='';segSet($('fVer'),'');fFl='';segSet($('fFl'),'');fSpecs.clear();fillFilters();render()};
 function fillFilters(){
   const set=(id,vals,label)=>{const el=$(id),cur=el.value,u=uniq(vals);el.innerHTML=`<option value="">${label}</option>`+u.map(v=>`<option ${v===cur?'selected':''}>${esc(v)}</option>`).join('');if(!u.includes(cur))el.value=''};
   set('fBrand',cars.map(c=>c.brand),'Alle Marken');
   const m=cars.filter(c=>!$('fBrand').value||c.brand===$('fBrand').value);set('fModel',m.map(c=>c.model),'Alle Modelle');
   const g=m.filter(c=>!$('fModel').value||c.model===$('fModel').value);set('fGen',g.map(c=>c.gen),'Alle Generationen');
   set('fView',cars.map(c=>c.view),'Alle Ansichten');
-  const specs=uniq(g.flatMap(c=>c.specs));[...fSpecs].forEach(s=>{if(!specs.includes(s))specs.push(s)});
+  const sm=new Map();for(const t of g.flatMap(c=>c.specs))if(!sm.has(tagKey(t)))sm.set(tagKey(t),t);const specs=uniq([...sm.values()]);[...fSpecs].forEach(s=>{if(!specs.some(x=>tagKey(x)===tagKey(s)))specs.push(s)});
   $('fSpecs').innerHTML=specs.length?specs.map(s=>`<span class="chip click ${fSpecs.has(s)?'on':''}" data-s="${esc(s)}">${esc(s)}</span>`).join(''):'<span class="hint">noch keine</span>'}
 const flName=f=>f==='fl'?'facelift fl lci':f==='vfl'?'vor-facelift vfl':'';
 function matches(c){
@@ -617,11 +732,13 @@ function matches(c){
   if($('fGen').value&&c.gen!==$('fGen').value)return false;
   if($('fView').value&&c.view!==$('fView').value)return false;
   if(fFl&&c.facelift!==fFl)return false;
-  if($('fVerified').checked&&!c.verified)return false;
-  if(fSpecs.size){const have=new Set(c.specs.map(s=>s.toLowerCase()));for(const s of fSpecs)if(!have.has(s.toLowerCase()))return false}
+  if(fVer&&!!c.verified!==(fVer==='1'))return false;
+  if(fSpecs.size){const have=new Set(c.specs.map(tagKey));for(const s of fSpecs)if(!have.has(tagKey(s)))return false}
   const y=+$('fYear').value;if(y){if(!c.from||y<c.from||y>(c.to||9999))return false}
-  const words=$('fText').value.toLowerCase().split(/\s+/).filter(Boolean);
-  if(words.length){const hay=[c.brand,c.model,c.gen,c.body,c.color,c.view,c.notes,c.originalName,...c.specs,flName(c.facelift)].join(' ').toLowerCase();if(!words.every(w=>hay.includes(w)))return false}
+  // Suche ohne Rücksicht auf Groß-/Kleinschreibung, Bindestriche und Leerzeichen: „r line“, „rline“ und „R-Line“ finden dasselbe
+  const words=normS($('fText').value).split(' ').filter(Boolean);
+  if(words.length){const hay=normS([c.brand,c.model,c.gen,c.body,c.color,c.view,c.notes,c.originalName,...c.specs,flName(c.facelift)].join(' ')),hc=hay.replace(/ /g,'');
+    if(!words.every(w=>hay.includes(w)||hc.includes(w))&&!hc.includes(words.join('')))return false}
   return true}
 const SORTS={name:(a,b)=>(a.brand+' '+a.model).localeCompare(b.brand+' '+b.model,'de')||(a.from||0)-(b.from||0),
   yearDesc:(a,b)=>(b.from||0)-(a.from||0),added:(a,b)=>String(b.importedAt).localeCompare(String(a.importedAt))};
@@ -630,7 +747,7 @@ const flChip=c=>c.facelift==='fl'?'<span class="chip fl">Facelift</span>':c.face
 let renderToken=0;
 function render(){const tok=++renderToken;
   const list=cars.filter(matches).sort(SORTS[$('sort').value]);lastList=list.map(c=>c.id);
-  const active=[$('fText').value.trim(),$('fBrand').value,$('fModel').value,$('fGen').value,$('fView').value,fFl,$('fYear').value,fSpecs.size,$('fVerified').checked].filter(Boolean).length;
+  const active=[$('fText').value.trim(),$('fBrand').value,$('fModel').value,$('fGen').value,$('fView').value,fFl,$('fYear').value,fSpecs.size,fVer].filter(Boolean).length;
   $('fReset').textContent=active?`Filter zurücksetzen (${active})`:'Filter zurücksetzen';
   $('count').textContent=`${list.length} von ${cars.length} Bildern`;
   $('grid').innerHTML=list.length?list.map(c=>`<div class="item${picked.has(c.id)?' sel':''}" data-id="${c.id}"><img class="im" data-img="${c.id}" alt=""><button class="tb pick" data-pick="${c.id}" title="Auswählen (Umschalt = Bereich)"><span></span></button><button class="tb dl" data-dl="${c.id}" title="Herunterladen">⤓</button>
@@ -686,11 +803,11 @@ $('selDel').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));if(!sel
   picked.clear();refreshLists();fillFilters();render();updateStatus();syncPicks();toast(ok===sel.length?`✓ ${ok} gelöscht`:`${ok} von ${sel.length} gelöscht`,ok!==sel.length)};
 
 // Gemeinsam ändern: dieselbe Speicherlogik wie beim Einzelbild (store.update), nur ausgefüllte Felder ändern sich
-$('b_view').innerHTML='<option value="keep">– unverändert –</option>'+VIEWS.map(v=>`<option value="${v}">${v||'– (leer)'}</option>`).join('');
+fillBulkSimple('','keep');wireSimple('b_body','bodies');wireSimple('b_view','views');
 wireSeg($('b_fl'),()=>bulkYears());wireSeg($('b_ver'));wireCascade('b_',()=>bulkYears());
 function bulkYears(){if(!$('b_gen').value)return;const f=segVal($('b_fl'));const g=genInfo($('b_brand').value,$('b_model').value,$('b_gen').value);if(!g||!g.from)return;
   let from=g.from,to=g.to;if(g.fl&&f==='vfl')to=g.fl;else if(g.fl&&f==='fl')from=g.fl;$('b_from').value=from;$('b_to').value=to??''}
-$('selEdit').onclick=()=>{fillCascade('b_','','','','keep');segSet($('b_fl'),'keep');segSet($('b_ver'),'keep');['b_from','b_to','b_body','b_addSpecs','b_rmSpecs'].forEach(i=>$(i).value='');$('b_view').value='keep';
+$('selEdit').onclick=()=>{fillCascade('b_','','','','keep');segSet($('b_fl'),'keep');segSet($('b_ver'),'keep');['b_from','b_to'].forEach(i=>$(i).value='');tagFields.b_addSpecs.set([]);tagFields.b_rmSpecs.set([]);fillBulkSimple('','keep');
   $('bulkTitle').textContent=picked.size===1?'1 Bild ändern':`${picked.size} Bilder gemeinsam ändern`;$('bulkDlg').showModal()};
 $('bulkClose').onclick=()=>$('bulkDlg').close();
 $('bulkSave').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));const ch={};
@@ -699,10 +816,10 @@ $('bulkSave').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));const
   if($('b_from').value!=='')ch.from=+$('b_from').value;if($('b_to').value!=='')ch.to=+$('b_to').value;
   if($('b_body').value.trim())ch.body=$('b_body').value.trim();if($('b_view').value!=='keep')ch.view=$('b_view').value;
   const v=segVal($('b_ver'));if(v!=='keep')ch.verified=v==='1';
-  const add=$('b_addSpecs').value.split(',').map(x=>x.trim()).filter(Boolean),rm=$('b_rmSpecs').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
+  const add=tagFields.b_addSpecs.get(),rm=tagFields.b_rmSpecs.get().map(tagKey);rememberTags(add);
   if(!Object.keys(ch).length&&!add.length&&!rm.length)return toast('Nichts zum Ändern ausgefüllt',true);
   saving=true;$('bulkSave').disabled=true;let ok=0,fail=0;
-  try{for(const c of sel){const next={...c,...ch};next.specs=[...new Set([...c.specs.filter(x=>!rm.includes(x.toLowerCase())),...add])];
+  try{for(const c of sel){const next={...c,...ch};next.specs=[...c.specs.filter(x=>!rm.includes(tagKey(x)))];for(const t of add)if(!next.specs.some(x=>tagKey(x)===tagKey(t)))next.specs.push(t);
       const err=validate(next);if(err){fail++;continue}
       const before={...c};Object.assign(c,next,{editedAt:new Date().toISOString()});
       try{await store.update(c);ok++}catch(e){Object.assign(c,before);fail++}}}
@@ -714,7 +831,7 @@ let cur=null;
 async function openDlg(id){cur=cars.find(c=>c.id===id);fillForm('e_',cur);editSnap=JSON.stringify(readForm('e_'));$('dImg').removeAttribute('src');$('dlg').showModal();
   $('dInfo').textContent=`${cur.originalName||''}${cur.width?` · ${cur.width}×${cur.height}`:''}${cur.resizedFrom?` (verkleinert von ${cur.resizedFrom.split(' → ')[0]})`:''} · hinzugefügt ${new Date(cur.importedAt).toLocaleDateString('de-DE')}${cur.editedAt?' · geändert '+new Date(cur.editedAt).toLocaleDateString('de-DE'):''}${cur._rel?' · '+cur._rel+'/'+cur.file:''}`;
   try{$('dImg').src=await urlFor(cur)}catch{toast('Bilddatei fehlt in der Mediathek',true)}}
-$('dSave').onclick=async()=>{const d=readForm('e_'),err=validate(d);if(err)return toast(err,true);
+$('dSave').onclick=async()=>{const d=readForm('e_'),err=validate(d);if(err)return toast(err,true);rememberTags(d.specs);
   const before={...cur};Object.assign(cur,d,{editedAt:new Date().toISOString()});
   try{await store.update(cur)}catch(e){Object.assign(cur,before);return toast('Speichern fehlgeschlagen: '+e.message,true)}
   refreshLists();fillFilters();render();$('dlg').close();toast('✓ Geändert')};
@@ -723,28 +840,88 @@ $('dDel').onclick=async()=>{if(!confirm(store.mode==='dir'?'Bild in den Papierko
   URL.revokeObjectURL(urls.get(cur.id));urls.delete(cur.id);cars=cars.filter(c=>c!==cur);refreshLists();fillFilters();render();updateStatus();$('dlg').close()};
 $('dDl').onclick=()=>downloadOne(cur);
 
-// ---------- Marken & Modelle (eigene Einträge) ----------
-function renderCat(){const n=Object.values(parsedCat).reduce((s,b)=>s+Object.values(b).reduce((t,g)=>t+g.length,0),0);
-  $('catInfo').textContent=`Eingebaut: ${catBrands().length} Marken, ${n} Generationen mit Bauzeit und Facelift-Jahr (Vorschläge, im Formular änderbar). Hier ergänzt du, was fehlt.`;
-  $('dlCatBrand').innerHTML=catBrands().map(v=>`<option value="${esc(v)}">`).join('');
-  $('dlCatModel').innerHTML=catModels($('c_brand').value.trim()).map(v=>`<option value="${esc(v)}">`).join('');
-  const list=[...ownCat].sort((a,b)=>okey(a).localeCompare(okey(b),'de'));
-  $('catList').innerHTML=list.length?list.map(o=>`<div class="catrow"><span>${esc(o.brand)}${o.model?' › '+esc(o.model):''}${o.gen?' › '+esc(genLabel(o)):''}</span><button data-rm="${esc(okey(o))}" title="Entfernen">×</button></div>`).join(''):'<div class="catrow"><span class="hint">Noch keine eigenen Einträge.</span></div>'}
-function openCat(pre={}){['c_brand','c_model','c_gen','c_from','c_to','c_fl'].forEach(i=>$(i).value='');$('c_brand').value=pre.brand||'';$('c_model').value=pre.model||'';renderCat();
-  if(!$('catDlg').open)$('catDlg').showModal();($(pre.focus==='gen'?'c_gen':pre.focus==='model'&&pre.brand?'c_model':'c_brand')).focus()}
-$('c_brand').addEventListener('input',renderCat);
+// ---------- Auswahllisten bearbeiten: Marke › Modell › Generation als Spalten, dazu Karosserie und Ansicht ----------
+let cSel={b:'',m:'',g:''},cPane='cat',cOrigin=null;
+const usedBy=(b,m,g)=>cars.filter(c=>c.brand===b&&(m==null||c.model===m)&&(g==null||c.gen===g)).length;
+function colItems(k){const d=curDoc();
+  if(k==='b')return d.brands.map(b=>({v:b.name,sub:b.models.length?b.models.length+' Modelle':''}));
+  if(k==='m')return cSel.b?(findB(d,cSel.b)?.models||[]).map(m=>({v:m.name,sub:m.gens.length?String(m.gens.length):''})):null;
+  if(k==='g')return cSel.m?(findM(d,cSel.b,cSel.m)?.gens||[]).map(g=>({v:g.gen,sub:g.from?`${g.from}–${g.to||'heute'}${g.fl?' · FL '+g.fl:''}`:''})):null;
+  return d[cPane]}
+function renderCol(k){const el=$('cl_'+k);const items=k==='l'?catList(cPane).map(v=>({v,sub:''})):colItems(k);const top=el.scrollTop;
+  const empty={m:'Erst eine Marke anklicken.',g:'Erst ein Modell anklicken.'}[k];
+  $('cn_'+k).textContent=items?items.length:'';$('ca_'+k).disabled=$('cb_'+k).disabled=!items;
+  if(!items){el.innerHTML=`<div class="cempty">${empty}</div>`;return}
+  const on=k==='l'?null:cSel[k];
+  el.innerHTML=items.length?items.map((it,i)=>`<div class="crow${it.v===on?' on':''}" draggable="true" data-i="${i}" data-v="${esc(it.v)}"><span class="h" title="Ziehen zum Verschieben">⋮⋮</span><span class="n">${esc(it.v)}${it.sub?`<small>${esc(it.sub)}</small>`:''}</span>`+
+    `<button data-a="up" title="Nach oben"${i?'':' disabled'}>▲</button><button data-a="down" title="Nach unten"${i<items.length-1?'':' disabled'}>▼</button><button data-a="rm" title="Entfernen">✕</button></div>`).join('')
+    :`<div class="cempty">Noch leer. Unten hinzufügen.</div>`;
+  el.scrollTop=top}
+function renderGedit(){const g=cSel.g?findM(curDoc(),cSel.b,cSel.m)?.gens.find(x=>x.gen===cSel.g):null;
+  $('ge_name').textContent=g?`${cSel.m} ${g.gen}`:'– Generation anklicken –';
+  for(const k of ['from','to','fl']){$('ge_'+k).disabled=!g;$('ge_'+k).value=g?(g[k]??''):''}$('ge_save').disabled=!g}
+function renderCat(){
+  if(cPane==='cat'){const d=curDoc();if(cSel.b&&!findB(d,cSel.b))cSel={b:'',m:'',g:''};if(cSel.m&&!findM(d,cSel.b,cSel.m))cSel.m=cSel.g='';
+    if(cSel.g&&!findM(d,cSel.b,cSel.m).gens.some(x=>x.gen===cSel.g))cSel.g='';['b','m','g'].forEach(renderCol);renderGedit()}
+  else{$('cl_title').textContent={bodies:'Karosserie',views:'Ansicht',tags:'Tags'}[cPane];renderCol('l')}}
+function showPane(v){cPane=v;segSet($('catTabs'),v);$('paneCat').classList.toggle('hidden',v!=='cat');$('paneList').classList.toggle('hidden',v==='cat');$('ca_l').value='';renderCat()}
+function openCat(pre={}){cOrigin=pre.origin?{id:pre.origin,k:pre.focus||pre.list}:null;
+  if(pre.list){showPane(pre.list)}else{cSel={b:pre.brand||'',m:pre.model||'',g:''};showPane('cat')}
+  ['b','m','g'].forEach(k=>$('ca_'+k).value='');
+  if(!$('catDlg').open)$('catDlg').showModal();
+  const f=pre.list?'ca_l':pre.focus==='gen'&&cSel.m?'ca_g':pre.focus==='model'&&cSel.b?'ca_m':pre.focus?'ca_b':null;
+  if(f)$(f).focus();for(const k of ['b','m'])$('cl_'+k).querySelector('.on')?.scrollIntoView({block:'nearest'})}
+// Jede Änderung: Liste übernehmen, speichern (der Reihe nach), Formulare aktualisieren
+let catChain=Promise.resolve();
+function editCat(fn){const d=catDoc?structuredClone(catDoc):seedDoc();if(fn(d)===false)return false;d.editedAt=new Date().toISOString();catDoc=d;
+  catBusy=true;const doc=d;catChain=catChain.then(()=>store.saveCatDoc(doc)).catch(err=>toast('Speichern fehlgeschlagen: '+err.message,true)).finally(()=>{if(catDoc===doc)catBusy=false});
+  refreshLists();renderCat();return true}
+function arrOf(d,k){if(k==='b')return d.brands;if(k==='m')return findB(d,cSel.b).models;if(k==='g')return findM(d,cSel.b,cSel.m).gens;return d[cPane]}
+const keyOf=(k,x)=>k==='b'||k==='m'?x.name:k==='g'?x.gen:x;
+function moveItem(k,from,to){if(from===to)return;editCat(d=>{const a=arrOf(d,k);if(to<0||to>=a.length)return false;const [x]=a.splice(from,1);a.splice(to,0,x)})}
+function addItem(k){const inp=$('ca_'+k),v=inp.value.trim().replace(/\s+/g,' ');if(!v)return toast('Bitte einen Namen eingeben',true);
+  const a=arrOf(curDoc(),k),same=k==='l'&&cPane==='tags'?(x,y)=>tagKey(x)===tagKey(y):(x,y)=>x.toLowerCase()===y.toLowerCase();const hit=a.find(x=>same(keyOf(k,x),v));
+  if(hit){toast(`„${keyOf(k,hit)}“ gibt es schon`,true);if(k!=='l')pickItem(k,keyOf(k,hit));return}
+  editCat(d=>{arrOf(d,k).push(k==='b'?{name:v,models:[]}:k==='m'?{name:v,gens:[]}:k==='g'?{gen:v,from:null,to:null,fl:null}:v)});
+  inp.value='';const el=$('cl_'+k);el.scrollTop=el.scrollHeight;
+  if(k!=='l')pickItem(k,v);toast(`✓ ${v} hinzugefügt`);
+  if(cOrigin)applyOrigin(k,v);
+  if(k==='g')$('ge_from').focus();else if(k==='b')$('ca_m').focus();else if(k==='m')$('ca_g').focus();else inp.focus()}
+// Wurde das Fenster aus einem Formular geöffnet („＋ Neue …“), wird der neue Eintrag dort gleich ausgewählt
+const isCascade=id=>/_$/.test(id);
+function applyOrigin(k,v){const o=cOrigin;if(!o||(k==='l')===isCascade(o.id))return;
+  if(k==='l'){if(o.k===cPane)fillSimple(o.id,catList(cPane),v,o.id==='b_body'?'– unverändert –':'–',cPane==='bodies'?'＋ Neue Karosserie …':'＋ Neue Ansicht …');if(o.id==='b_view')fillBulkSimple($('b_body').value,v);return}
+  const p=o.id,keep=p==='b_'?'keep':'';fillCascade(p,cSel.b,k==='b'?'':cSel.m,k==='g'?v:'',keep)}
+function pickItem(k,v){if(k==='b'){cSel={b:v,m:'',g:''}}else if(k==='m'){cSel.m=v;cSel.g=''}else cSel.g=v;renderCat()}
+function removeItem(k,i){const d=curDoc(),x=arrOf(d,k)[i],v=keyOf(k,x);let n=0,msg;
+  if(k==='b'){n=usedBy(v);msg=`Marke „${v}“${x.models.length?` mit ${x.models.length} Modellen`:''} aus der Auswahl entfernen?`}
+  else if(k==='m'){n=usedBy(cSel.b,v);msg=`Modell „${cSel.b} ${v}“${x.gens.length?` mit ${x.gens.length} Generationen`:''} aus der Auswahl entfernen?`}
+  else if(k==='g'){n=usedBy(cSel.b,cSel.m,v);msg=`Generation „${cSel.m} ${v}“ aus der Auswahl entfernen?`}
+  else{n=cPane==='tags'?cars.filter(c=>c.specs.some(t=>tagKey(t)===tagKey(v))).length:cars.filter(c=>c[cPane==='bodies'?'body':'view']===v).length;msg=`„${v}“ aus der Auswahl entfernen?`}
+  if(n)msg+=`\n\n${n} ${n===1?'Bild nutzt':'Bilder nutzen'} diesen Eintrag. ${n===1?'Es behält':'Sie behalten'} ihre Angaben und ${n===1?'bleibt':'bleiben'} über die Suche auffindbar. Der Eintrag fehlt nur bei der Auswahl für neue Bilder.`;
+  if(!confirm(msg))return;
+  editCat(d=>{arrOf(d,k).splice(i,1)});toast(`${v} entfernt`)}
+for(const k of ['b','m','g','l']){const el=$('cl_'+k);
+  $('cb_'+k).onclick=()=>addItem(k);$('ca_'+k).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addItem(k)}});
+  el.addEventListener('click',e=>{const r=e.target.closest('.crow');if(!r)return;const i=+r.dataset.i,a=e.target.closest('button')?.dataset.a;
+    if(a==='up')moveItem(k,i,i-1);else if(a==='down')moveItem(k,i,i+1);else if(a==='rm')removeItem(k,i);else if(k!=='l'&&!a)pickItem(k,r.dataset.v)});
+  // Ziehen zum Umsortieren (Maus); auf dem Handy die Pfeile
+  let dragI=-1;const clear=()=>el.querySelectorAll('.dt').forEach(x=>x.classList.remove('dt','end'));
+  el.addEventListener('dragstart',e=>{const r=e.target.closest('.crow');if(!r)return;dragI=+r.dataset.i;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',r.dataset.v)});
+  const target=e=>{const r=e.target.closest('.crow');if(!r)return null;const b=r.getBoundingClientRect();return{r,i:+r.dataset.i,after:e.clientY>b.top+b.height/2}};
+  el.addEventListener('dragover',e=>{if(dragI<0)return;e.preventDefault();const t=target(e);clear();if(t){t.r.classList.add('dt');if(t.after)t.r.classList.add('end')}});
+  el.addEventListener('dragleave',e=>{if(!el.contains(e.relatedTarget))clear()});
+  el.addEventListener('drop',e=>{if(dragI<0)return;e.preventDefault();const t=target(e);clear();if(!t){dragI=-1;return}
+    let to=t.i+(t.after?1:0);if(to>dragI)to--;const f=dragI;dragI=-1;moveItem(k,f,to)});
+  el.addEventListener('dragend',()=>{dragI=-1;clear()})}
+$('ge_save').onclick=()=>{const n=v=>v===''?null:+v;const from=n($('ge_from').value),to=n($('ge_to').value),fl=n($('ge_fl').value);
+  if(from&&to&&to<from)return toast('„bis“ liegt vor „von“',true);if(fl&&from&&(fl<from||(to&&fl>to)))return toast('Facelift-Jahr liegt außerhalb der Bauzeit',true);
+  editCat(d=>{const g=findM(d,cSel.b,cSel.m).gens.find(x=>x.gen===cSel.g);Object.assign(g,{from,to,fl})});toast('✓ Bauzeit übernommen');
+  if(cOrigin&&isCascade(cOrigin.id)){const p=cOrigin.id;if($(p+'gen')?.value===cSel.g)(p==='b_'?bulkYears:()=>suggestYears(p))()}};
+['ge_from','ge_to','ge_fl'].forEach(i=>$(i).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('ge_save').click()}}));
+wireSeg($('catTabs'),v=>showPane(v));
 $('libCat').onclick=()=>{$('libDlg').close();openCat()};$('catClose').onclick=()=>$('catDlg').close();
-$('catAdd').onclick=async()=>{const n=v=>v===''?null:+v;
-  const e={brand:$('c_brand').value.trim(),model:$('c_model').value.trim(),gen:$('c_gen').value.trim(),from:n($('c_from').value),to:n($('c_to').value),fl:n($('c_fl').value),added:new Date().toISOString()};
-  if(!e.brand)return toast('Bitte eine Marke angeben',true);if(e.gen&&!e.model)return toast('Für eine Generation bitte auch das Modell angeben',true);
-  if(e.from&&e.to&&e.to<e.from)return toast('„bis“ liegt vor „von“',true);if(e.fl&&e.from&&(e.fl<e.from||(e.to&&e.fl>e.to)))return toast('Facelift-Jahr liegt außerhalb der Bauzeit',true);
-  if(!e.model)delete e.model;if(!e.gen){delete e.gen;delete e.from;delete e.to;delete e.fl}
-  ownCat=[...ownCat.filter(o=>okey(o)!==okey(e)),e];
-  try{await store.saveOwnCat(ownCat)}catch(err){return toast('Speichern fehlgeschlagen: '+err.message,true)}
-  refreshLists();renderCat();['c_gen','c_from','c_to','c_fl'].forEach(i=>$(i).value='');if(!e.gen)$('c_model').value='';
-  toast(`✓ ${[e.brand,e.model,e.gen].filter(Boolean).join(' › ')} hinzugefügt`)};
-$('catList').onclick=async e=>{const b=e.target.closest('[data-rm]');if(!b)return;ownCat=ownCat.filter(o=>okey(o)!==b.dataset.rm);
-  try{await store.saveOwnCat(ownCat)}catch(err){toast(err.message,true)}refreshLists();renderCat()};
+$('catDlg').addEventListener('close',()=>cOrigin=null);
 
 // ---------- Fenster: Klick daneben oder Esc schließt ----------
 let editSnap='';
@@ -805,7 +982,7 @@ $('installBtn').onclick=async()=>{if(!installEvt)return;installEvt.prompt();awai
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 // ---------- Version und Updates (wie archivn: prüft beim Start und alle 30 Minuten, installiert erst auf Knopfdruck) ----------
-const APP_VERSION='1.4.0',APP_BUILD=6;
+const APP_VERSION='1.5.0',APP_BUILD=7;
 let updLatest=null,updLaterBuild=+(()=>{try{return localStorage.getItem('updLater')||0}catch{return 0}})();
 function showVer(){$('verInfo').textContent=`Installiert: Version ${APP_VERSION} · Build ${APP_BUILD}`+(matchMedia('(display-mode: standalone)').matches?' · als App':' · im Browser')}
 async function checkUpdate(manual){if(manual)$('updState').textContent='Suche nach Updates …';

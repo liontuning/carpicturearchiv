@@ -19,9 +19,13 @@ await A.selectOption('#u_brand','Audi');assert(await A.inputValue('#u_model')===
 // Eigener Katalogeintrag über "Neu ..."
 await A.selectOption('#u_model','A4');await A.selectOption('#u_gen','__neu__');await A.waitForTimeout(300);
 assert(await A.isVisible('#catDlg'),'„Neue Generation …“ öffnet Marken & Modelle');
-assert(await A.inputValue('#c_brand')==='Audi'&&await A.inputValue('#c_model')==='A4','Marke/Modell vorausgefüllt');
-await A.fill('#c_gen','B10 Test');await A.fill('#c_from','2024');await A.fill('#c_fl','2027');await A.click('#catAdd');await A.waitForTimeout(300);
-await A.fill('#c_brand','Rimac');await A.fill('#c_model','Nevera');await A.click('#catAdd');await A.waitForTimeout(300);
+assert(await A.$eval('#cl_b .crow.on',e=>e.dataset.v)==='Audi'&&await A.$eval('#cl_m .crow.on',e=>e.dataset.v)==='A4','Marke/Modell in den Spalten ausgewählt');
+assert(await A.evaluate(()=>document.activeElement.id)==='ca_g','Feld „Neue Generation“ hat den Fokus');
+await A.fill('#ca_g','B10 Test');await A.press('#ca_g','Enter');await A.waitForTimeout(200);
+assert(await A.evaluate(()=>document.activeElement.id)==='ge_from','danach Bauzeit eingeben');
+await A.fill('#ge_from','2024');await A.fill('#ge_fl','2027');await A.click('#ge_save');await A.waitForTimeout(300);
+assert(await A.inputValue('#u_gen')==='B10 Test','neue Generation gleich im Formular gewählt');
+await A.fill('#ca_b','Rimac');await A.click('#cb_b');await A.fill('#ca_m','Nevera');await A.click('#cb_m');await A.waitForTimeout(300);
 await A.mouse.click(5,5);await A.waitForTimeout(200);assert(!(await A.isVisible('#catDlg')),'Klick daneben schließt Fenster');
 await A.selectOption('#u_brand','Audi');await A.selectOption('#u_model','A4');
 assert((await A.$$eval('#u_gen option',o=>o.map(x=>x.value))).includes('B10 Test'),'eigene Generation in der Liste');
@@ -50,7 +54,7 @@ const zl=execSync('python3 -c "import zipfile;z=zipfile.ZipFile(\''+require('os'
 assert(zl[0]==='None'&&zl[1]==='3','ZIP gültig mit 3 Bildern: '+zl[2]);
 // Gemeinsam ändern
 await A.click('#selEdit');await A.waitForTimeout(200);
-await A.click('#b_ver [data-v="1"]');await A.fill('#b_addSpecs','S-Line, Quattro');await A.selectOption('#b_view','Front');await A.click('#bulkSave');await A.waitForTimeout(1500);
+await A.click('#b_ver [data-v="1"]');await A.fill('#b_addSpecs .tagin','S-Line, Quattro');await A.selectOption('#b_view','Front');await A.click('#bulkSave');await A.waitForTimeout(1500);
 const recs=await A.evaluate(()=>cars.map(c=>[c.verified,c.specs.join('+'),c.view,c.brand,c.model,c.gen,c.facelift,c.from,c.to]));console.log('  ',JSON.stringify(recs[0]));
 assert(recs.every(r=>r[0]===true&&r[1]==='S-Line+Quattro'&&r[2]==='Front'&&r[3]==='Audi'&&r[5]==='B9 (8W)'&&r[6]==='fl'&&r[7]===2019),'Gemeinsam ändern: nur ausgefüllte Felder geändert, Rest bleibt');
 await A.click('#selEdit');await A.selectOption('#b_brand','BMW');await A.selectOption('#b_model','3er');await A.selectOption('#b_gen','G20/G21');await A.click('#b_fl [data-v=fl]');

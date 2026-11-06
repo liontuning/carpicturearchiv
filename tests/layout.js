@@ -12,7 +12,7 @@ await diff('add files',async()=>{await p.setInputFiles('#fileIn',[{name:'a.jpg',
 await diff('toggle queue',async()=>{await p.click('.q')});
 await diff('hover button',async()=>{await p.hover('#selAll')});
 await diff('seg click',async()=>{await p.click('#u_fl [data-v=fl]')});
-await diff('focus input',async()=>{await p.click('#u_brand');await p.selectOption('#u_brand','BMW');await p.selectOption('#u_model','3er');await p.fill('#u_from','2015');await p.fill('#u_specs','M-Paket, 330i, xDrive')});
+await diff('focus input',async()=>{await p.click('#u_brand');await p.selectOption('#u_brand','BMW');await p.selectOption('#u_model','3er');await p.fill('#u_from','2015');await p.fill('#u_specs .tagin','M-Paket, 330i, xDrive')});
 await diff('save',async()=>{await p.click('#q'.length?'.q':'.q');await p.click('#saveBtn')});
 await p.click('#tabSearch');await p.waitForTimeout(400);
 await diff('filter brand',async()=>{await p.selectOption('#fBrand','BMW')});
@@ -26,4 +26,8 @@ const m=await b.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});a
 await m.screenshot({path:require('os').tmpdir()+'/mob1.png',fullPage:false});
 console.log('mobile hscroll',await m.evaluate(()=>document.documentElement.scrollWidth>innerWidth));
 await m.click('#tabSearch');await m.waitForTimeout(300);await m.screenshot({path:require('os').tmpdir()+'/mob2.png'});
+for(const w of [680,820,1000]){const n=await b.newPage({viewport:{width:w,height:900}});await n.goto('http://localhost:8770/');await n.waitForTimeout(500);await n.click('#tabSearch');
+  await n.evaluate(()=>{cars.push(normalize({id:'x1',brand:'BMW',model:'3er',file:'a.jpg'}));render();scrollTo(0,500)});await n.waitForTimeout(200);
+  const ov=await n.evaluate(()=>{const f=document.querySelector('.filters').getBoundingClientRect(),g=document.querySelector('.grid').getBoundingClientRect();return f.bottom>g.top+1&&f.right>g.left+1});
+  console.log('Breite',w,ov?'FAIL Kacheln überdecken Filter':'PASS Filter und Kacheln getrennt');if(ov)process.exitCode=1;await n.close()}
 await b.close()})();

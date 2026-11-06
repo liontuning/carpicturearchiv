@@ -16,15 +16,15 @@ await A.setInputFiles('#fileIn',[{name:'f30.jpg',mimeType:'image/jpeg',buffer:aw
 await A.waitForTimeout(1200);
 await A.click('.q:nth-child(2)'); // deselect w205
 await A.selectOption('#u_brand','BMW');await A.selectOption('#u_model','3er');await A.selectOption('#u_gen','F30/F31/F34');await A.click('#u_fl [data-v=fl]');
-await A.fill('#u_from','2015');await A.fill('#u_to','2019');await A.fill('#u_specs','M-Paket, 330i');await A.check('#u_verified');
+await A.fill('#u_from','2015');await A.fill('#u_to','2019');await A.fill('#u_specs .tagin','M-Paket, 330i');await A.check('#u_verified');
 await A.press('#u_brand','Enter');await A.waitForTimeout(1200);
 await A.click('.q');await A.selectOption('#u_brand','Mercedes-Benz');await A.selectOption('#u_model','C-Klasse');await A.selectOption('#u_gen','W205');await A.click('#u_fl [data-v=vfl]');
-await A.fill('#u_from','2014');await A.fill('#u_to','2018');await A.fill('#u_specs','AMG-Line');await A.click('#saveBtn');await A.waitForTimeout(1200);
+await A.fill('#u_from','2014');await A.fill('#u_to','2018');await A.fill('#u_specs .tagin','AMG-Line');await A.click('#saveBtn');await A.waitForTimeout(1200);
 assert((await A.textContent('#statusTxt')).includes('2 Bilder'),'A: 2 Bilder gespeichert');
 const files=async p=>p.evaluate(async()=>{const out=[];const walk=async(d,pre)=>{for await(const [n,h] of d.entries()){if(h.kind==='directory')await walk(h,pre+n+'/');else out.push(pre+n)}};await walk(await (await navigator.storage.getDirectory()).getDirectoryHandle('GoogleDrive'),'');return out});
 let f=await files(A);console.log(f.join('\n'));
 assert(f.filter(x=>x.includes('Vorschauen/')).length===2,'Vorschaubilder angelegt');
-assert(!f.some(x=>x.includes('katalog.json')),'keine katalog.json im Drive (keine Konflikte)');
+assert(f.filter(x=>/katalog.*\.json/.test(x)).length===1&&f.includes('Archivdaten/katalog.json'),'genau eine katalog.json (neue Tags gemerkt)');
 const meta=JSON.parse(await A.evaluate(async()=>{const d=await (await (await navigator.storage.getDirectory()).getDirectoryHandle('GoogleDrive')).getDirectoryHandle('Auto Bildarchiv').catch(()=>null);return d?'"sub"':'{}'}));
 // PC B: zweiter Rechner öffnet dieselbe Mediathek
 const B=await open();
@@ -43,7 +43,7 @@ await B.click('.item');await B.waitForTimeout(400);await B.fill('#e_color','Alpi
 f=await files(B);assert(f.some(x=>/BMW_3er_F30-F31-F34_FL_\w{4}\.jpg$/.test(x)),'Dateiname passt nach Bearbeiten');
 // A: neues Bild auf A, B übernimmt automatisch
 await A.setInputFiles('#fileIn',[{name:'golf.jpg',mimeType:'image/jpeg',buffer:await mk(A,1200,900,'#3a3')}]);await A.waitForTimeout(800);
-await A.selectOption('#u_brand','Volkswagen');await A.selectOption('#u_model','Golf');await A.selectOption('#u_gen','VII');await A.fill('#u_specs','GTI');await A.click('#saveBtn');await A.waitForTimeout(1000);
+await A.selectOption('#u_brand','Volkswagen');await A.selectOption('#u_model','Golf');await A.selectOption('#u_gen','VII');await A.fill('#u_specs .tagin','GTI');await A.click('#saveBtn');await A.waitForTimeout(1000);
 await A.evaluate(()=>rescan(true));await A.waitForTimeout(500);
 await A.click('#tabSearch');await A.fill('#fText','alpinweiß');await A.waitForTimeout(300);assert((await A.textContent('#count')).startsWith('1 von 3'),'A: sieht Bearbeitung von B');await A.click('#fReset');
 await B.evaluate(()=>rescan(true));await B.waitForTimeout(800);
