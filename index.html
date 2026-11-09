@@ -151,6 +151,10 @@ select{min-width:0;max-width:100%;text-overflow:ellipsis}
 .topbar select{width:auto}
 dialog{border:0;border-radius:12px;padding:0;background:var(--surface);color:var(--text);max-width:min(1150px,96vw);width:100%}
 dialog::backdrop{background:#000c}
+.dx{position:sticky;top:0;height:0;z-index:6}
+.dx button{position:absolute;top:12px;right:12px;width:var(--ctl);padding:0;font-size:18px;background:var(--hi);box-shadow:0 2px 10px #0009}
+.dx button:hover{background:#383633}
+.dlgt{grid-column:1/-1;margin:0;height:var(--ctl);line-height:var(--ctl);font-size:26px;padding-right:56px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dlg{display:grid;grid-template-columns:1.3fr 1fr;gap:var(--m);padding:var(--m)}
 @media (max-width:860px){.dlg{grid-template-columns:1fr}}
 .dlg .imgbox{width:100%;aspect-ratio:4/3;border-radius:var(--r);background:var(--bg);overflow:hidden}
@@ -217,7 +221,8 @@ dialog::backdrop{background:#000c}
 </section>
 </main>
 
-<dialog id="dlg"><div class="dlg">
+<dialog id="dlg"><div class="dx"><button id="dClose" type="button" title="Schließen (Esc)" aria-label="Schließen">✕</button></div><div class="dlg">
+  <h2 class="dlgt">Bild ansehen und bearbeiten</h2>
   <div><div class="imgbox"><img id="dImg" alt=""></div></div>
   <div>
     <div class="form" id="editForm"></div>
@@ -225,14 +230,13 @@ dialog::backdrop{background:#000c}
       <button class="btn pri" id="dSave">Speichern</button>
       <button id="dDl">Herunterladen</button>
       <button class="btn danger" id="dDel">Löschen</button>
-      <button id="dClose">Schließen</button>
     </div>
     <p class="hint" id="dInfo"></p>
   </div>
 </div></dialog>
 
-<dialog id="libDlg" style="max-width:min(760px,96vw)"><div style="padding:var(--m)">
-  <div class="row" style="justify-content:space-between"><h2 style="margin:0;font-size:28px">Einstellungen</h2><button id="libClose">Schließen</button></div>
+<dialog id="libDlg" style="max-width:min(760px,96vw)"><div class="dx"><button id="libClose" type="button" title="Schließen (Esc)" aria-label="Schließen">✕</button></div><div style="padding:var(--m)">
+  <h2 class="dlgt" style="font-size:28px">Einstellungen</h2>
   <section class="set">
     <span class="lbl">Mediathek</span>
     <p class="hint" id="libInfo"></p>
@@ -273,8 +277,8 @@ dialog::backdrop{background:#000c}
   <button id="selNone">Auswahl aufheben</button>
 </div>
 
-<dialog id="catDlg" style="width:min(1120px,96vw);max-width:96vw"><div style="padding:var(--m)">
-  <div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0;font-size:26px">Auswahllisten</h2><button id="catClose">Schließen</button></div>
+<dialog id="catDlg" style="width:min(1120px,96vw);max-width:96vw"><div class="dx"><button id="catClose" type="button" title="Schließen (Esc)" aria-label="Schließen">✕</button></div><div style="padding:var(--m)">
+  <h2 class="dlgt" style="margin-bottom:6px">Auswahllisten</h2>
   <p class="hint" style="margin:0 0 var(--m);height:2.6em;overflow:hidden" id="catInfo">Marke anklicken, dann Modell, dann Generation. Reihenfolge per Ziehen oder mit ▲▼ ändern. Sie gilt auch im Formular und auf allen Rechnern.</p>
   <div class="seg ctabs" id="catTabs"><button type="button" data-v="cat" class="on">Marken &amp; Modelle</button><button type="button" data-v="bodies">Karosserie</button><button type="button" data-v="views">Ansicht</button><button type="button" data-v="tags">Tags</button></div>
   <div class="cpane" id="paneCat"><div class="ccols">
@@ -298,8 +302,8 @@ dialog::backdrop{background:#000c}
   </div></div>
 </div></dialog>
 
-<dialog id="bulkDlg" style="max-width:min(760px,96vw)"><div style="padding:var(--m)">
-  <h2 style="margin:0 0 6px;font-size:26px" id="bulkTitle">Gemeinsam ändern</h2>
+<dialog id="bulkDlg" style="max-width:min(760px,96vw)"><div class="dx"><button id="bulkX" type="button" title="Schließen (Esc)" aria-label="Schließen">✕</button></div><div style="padding:var(--m)">
+  <h2 class="dlgt" style="margin-bottom:6px" id="bulkTitle">Gemeinsam ändern</h2>
   <p class="hint" style="margin:0 0 var(--m)">Nur was du hier ausfüllst, wird bei allen ausgewählten Bildern geändert. Leere Felder bleiben, wie sie sind.</p>
   <div class="form">
     <div><span class="lbl">Marke</span><select id="b_brand"></select></div>
@@ -809,7 +813,7 @@ function bulkYears(){if(!$('b_gen').value)return;const f=segVal($('b_fl'));const
   let from=g.from,to=g.to;if(g.fl&&f==='vfl')to=g.fl;else if(g.fl&&f==='fl')from=g.fl;$('b_from').value=from;$('b_to').value=to??''}
 $('selEdit').onclick=()=>{fillCascade('b_','','','','keep');segSet($('b_fl'),'keep');segSet($('b_ver'),'keep');['b_from','b_to'].forEach(i=>$(i).value='');tagFields.b_addSpecs.set([]);tagFields.b_rmSpecs.set([]);fillBulkSimple('','keep');
   $('bulkTitle').textContent=picked.size===1?'1 Bild ändern':`${picked.size} Bilder gemeinsam ändern`;$('bulkDlg').showModal()};
-$('bulkClose').onclick=()=>$('bulkDlg').close();
+$('bulkClose').onclick=$('bulkX').onclick=()=>$('bulkDlg').close();
 $('bulkSave').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));const ch={};
   const b=$('b_brand').value,m=$('b_model').value;if(b){if(!m)return toast('Bitte auch ein Modell wählen',true);Object.assign(ch,{brand:b,model:m,gen:$('b_gen').value})}
   const f=segVal($('b_fl'));if(f!=='keep')ch.facelift=f;
@@ -982,7 +986,7 @@ $('installBtn').onclick=async()=>{if(!installEvt)return;installEvt.prompt();awai
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 // ---------- Version und Updates (wie archivn: prüft beim Start und alle 30 Minuten, installiert erst auf Knopfdruck) ----------
-const APP_VERSION='1.5.0',APP_BUILD=7;
+const APP_VERSION='1.5.1',APP_BUILD=8;
 let updLatest=null,updLaterBuild=+(()=>{try{return localStorage.getItem('updLater')||0}catch{return 0}})();
 function showVer(){$('verInfo').textContent=`Installiert: Version ${APP_VERSION} · Build ${APP_BUILD}`+(matchMedia('(display-mode: standalone)').matches?' · als App':' · im Browser')}
 async function checkUpdate(manual){if(manual)$('updState').textContent='Suche nach Updates …';

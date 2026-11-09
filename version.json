@@ -1,8 +1,9 @@
 {
-  "version": "1.5.0",
-  "build": 7,
-  "date": "2026-11-06",
+  "version": "1.5.1",
+  "build": 8,
+  "date": "2026-11-09",
   "notes": [
+    "✕ oben rechts in jedem Fenster zum Schließen (bleibt beim Scrollen sichtbar)",
     "Auswahllisten: Marke, Modell und Generation als Spalten, mit Hinzufügen, Entfernen und eigener Reihenfolge",
     "Karosserie, Ansicht und Tags als bearbeitbare Listen",
     "Tags wie R-Line oder M-Paket mit Vorschlägen und „Hinzufügen“",
