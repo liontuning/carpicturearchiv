@@ -1,14 +1,15 @@
 {
-  "version": "1.5.1",
-  "build": 8,
-  "date": "2026-11-09",
+  "version": "1.6.0",
+  "build": 9,
+  "date": "2026-11-12",
   "notes": [
-    "✕ oben rechts in jedem Fenster zum Schließen (bleibt beim Scrollen sichtbar)",
-    "Auswahllisten: Marke, Modell und Generation als Spalten, mit Hinzufügen, Entfernen und eigener Reihenfolge",
-    "Karosserie, Ansicht und Tags als bearbeitbare Listen",
-    "Tags wie R-Line oder M-Paket mit Vorschlägen und „Hinzufügen“",
-    "Suche ignoriert Groß-/Kleinschreibung und Bindestriche („r line“ findet „R-Line“)",
-    "Filter Alle / Geprüft / Ungeprüft",
-    "Schmales Fenster: Kacheln überdecken die Filter nicht mehr"
+    "Sicherer: viele Bilder desselben Autos auf einmal können sich nicht mehr gegenseitig überschreiben",
+    "Enter im Tag-Feld wählt nur noch den Tag und speichert nicht mehr versehentlich alle Bilder",
+    "Ist Google Drive kurz nicht erreichbar, bleiben alle Bilder sichtbar und der Status meldet es",
+    "Eigene Änderungen springen beim Abgleich mit dem anderen Rechner nicht mehr kurz zurück",
+    "Unlesbare Bilder (z. B. HEIC) werden markiert und halten die Warteschlange nicht mehr auf",
+    "Dateien neben das Feld fallen lassen öffnet sie nicht mehr im Fenster, sondern sortiert sie ein",
+    "Fenster schließen sich nicht mehr, wenn man beim Markieren von Text daneben loslässt",
+    "„Aktualisieren“ ohne Internet lässt die App unangetastet"
   ]
 }
