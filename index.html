@@ -61,7 +61,10 @@ input::placeholder,textarea::placeholder{color:var(--dim)}
 #drop b{color:var(--text);font-size:26px;display:block;margin-bottom:4px}
 .upwrap{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.15fr);gap:var(--m);margin-top:var(--m)}
 @media (max-width:860px){.upwrap{grid-template-columns:1fr}}
-.queue{display:grid;grid-template-columns:repeat(auto-fill,120px);gap:var(--gap)}
+/* feste Höhe (3 Reihen, schmal 2): weitere Bilder scrollen im Feld, darunter verschiebt sich nichts */
+.queue{display:grid;grid-template-columns:repeat(auto-fill,120px);grid-auto-rows:90px;align-content:start;gap:var(--gap);height:286px;overflow-y:auto;scrollbar-gutter:stable}
+.queue:empty::before{content:"Noch keine Bilder in der Warteschlange";grid-column:1/-1;color:var(--dim);font-size:15px;font-weight:500;line-height:90px}
+@media (max-width:860px){.queue{height:188px}}
 .q{position:relative;width:120px;height:90px;border:3px solid transparent;border-radius:var(--r);overflow:hidden;cursor:pointer;background:var(--hi)}
 .q.sel{border-color:var(--acc)}
 .q img{width:100%;height:100%;object-fit:cover;display:block}
@@ -78,7 +81,7 @@ select{min-width:0;max-width:100%;text-overflow:ellipsis}
 /* schmal: Filter über den Treffern, nicht klebend (sonst liegen Kacheln darüber) */
 @media (max-width:860px){.search{grid-template-columns:1fr}.filters{position:static;max-height:none;overflow:visible}}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,var(--tile));gap:var(--m)}
-@media (max-width:560px){:root{--tile:calc(50vw - 24px)}}
+@media (max-width:560px){:root{--tile:calc(50vw - 32px)}}
 .item{position:relative;width:var(--tile);background:var(--surface);border-radius:var(--r);overflow:hidden;cursor:pointer;border:2px solid transparent}
 .item.sel{border-color:var(--acc)}
 .item .tb{position:absolute;top:8px;width:40px;height:40px;padding:0;border-radius:var(--r);background:#000a;display:grid;place-items:center;font-size:18px;line-height:1}
@@ -162,10 +165,32 @@ dialog::backdrop{background:#000c}
 #dInfo{min-height:3.9em;margin:12px 0 0}
 .dlg .btn.pri{min-width:0;height:var(--ctl);font-size:17px;padding:0 20px}
 .empty{padding:48px;text-align:center;color:var(--dim)}
+/* Detailfenster: blättern und zoomen (nur Überlagerungen und transform, nichts verschiebt sich) */
+.dlg .imgbox{position:relative;cursor:zoom-in}
+.dlg .imgbox.zoom{cursor:zoom-out}
+.dlg .imgbox.zoom img{transform:scale(2.5)}
+.dnav{position:absolute;top:50%;margin-top:-20px;width:var(--ctl);padding:0;font-size:24px;line-height:1;background:#000a;z-index:2}
+.dnav:hover{background:#000d}
+.dnav.p{left:8px}.dnav.n{right:8px}
+.dpos{position:absolute;left:50%;bottom:8px;margin-left:-55px;width:110px;height:26px;line-height:26px;text-align:center;border-radius:6px;background:#000a;font-size:14px;pointer-events:none;z-index:2}
+.dpos:empty{display:none}
+/* Papierkorb */
+.tlist{height:min(440px,56vh);overflow-y:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);scrollbar-gutter:stable}
+.trow{display:flex;align-items:center;gap:12px;height:88px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.trow img{width:96px;height:72px;object-fit:cover;border-radius:6px;background:var(--hi);flex:none}
+.trow .n{flex:1;min-width:0}
+.trow .n div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow .rm{width:var(--ctl);padding:0}
+@media (max-width:640px){.trow{height:140px;flex-wrap:wrap;align-content:center}.trow .n{flex:1 1 calc(100% - 108px)}.trow button[data-a=re]{flex:1}}
+#more{height:1px}
 .banner{position:fixed;left:var(--m);right:var(--m);bottom:var(--m);z-index:40;max-width:900px;margin:0 auto;box-shadow:0 8px 32px #000a;background:var(--surface);border-left:4px solid var(--amber);border-radius:var(--r);padding:12px var(--m);display:flex;gap:var(--m);align-items:center;flex-wrap:wrap}
 .banner p{margin:0;flex:1;min-width:240px}
-#toast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);background:var(--hi);padding:10px 18px;border-radius:var(--r);box-shadow:0 6px 24px #0008;opacity:0;transition:opacity .15s;pointer-events:none;z-index:50}
+#toast{position:fixed;inset:auto auto 110px 50%;margin:0;border:0;overflow:hidden;width:max-content;max-width:calc(100vw - 32px);color:var(--text);font:inherit;transform:translateX(-50%);background:var(--hi);padding:10px 18px;border-radius:var(--r);box-shadow:0 6px 24px #0008;opacity:0;transition:opacity .15s;pointer-events:none;z-index:50}
 #toast.show{opacity:1}#toast.bad{background:var(--err)}
+#toast.act{pointer-events:auto;padding:6px 6px 6px 18px}
+#toast.act:popover-open{display:flex;align-items:center;gap:14px}
+#toast button{height:32px;padding:0 14px;font-size:16px;background:var(--acc);color:#fff}
+#toast.bad button{background:#0006}
 </style>
 </head>
 <body>
@@ -185,8 +210,8 @@ dialog::backdrop{background:#000c}
   <div class="upwrap">
     <div class="card">
       <div class="topbar"><span class="lbl" style="margin:0">Warteschlange · <span id="qCount">0</span></span><button id="selAll">Alle an/aus</button></div>
-      <div class="queue" id="queue" style="min-height:90px"></div>
-      <p class="hint" id="qHint">Ausgewählte Bilder (oranger Rahmen) bekommen die Angaben rechts. Bilder, die schon im Archiv sind, werden erkannt und nicht doppelt gespeichert. Größere Bilder werden automatisch auf 1600×1200 verkleinert.</p>
+      <div class="queue" id="queue"></div>
+      <p class="hint" id="qHint">Ausgewählte Bilder (oranger Rahmen) bekommen die Angaben rechts. Bilder, die schon im Archiv sind, werden erkannt und nicht doppelt gespeichert. Größere Bilder werden automatisch auf 1600×1200 verkleinert, Standortdaten (GPS) aus der Kamera werden entfernt.</p>
     </div>
     <div class="card">
       <div class="form" id="tagForm"></div>
@@ -203,9 +228,12 @@ dialog::backdrop{background:#000c}
     <div class="card filters">
       <div><span class="lbl">Angaben</span><div class="seg" id="fVer"><button data-v="" class="on">Alle</button><button data-v="1">Geprüft</button><button data-v="0">Ungeprüft</button></div></div>
       <div><span class="lbl">Freitext</span><input id="fText" placeholder="z. B. 330i rot touring"></div>
+      <div><span class="lbl">Artikelnummer</span><input id="fArt" autocomplete="off" placeholder="z. B. 4711-22"></div>
       <div><span class="lbl">Marke</span><select id="fBrand"></select></div>
       <div><span class="lbl">Modell</span><select id="fModel"></select></div>
       <div><span class="lbl">Generation</span><select id="fGen"></select></div>
+      <div><span class="lbl">Karosserie</span><select id="fBody"></select></div>
+      <div><span class="lbl">Farbe</span><select id="fColor"></select></div>
       <div><span class="lbl">Facelift</span><div class="seg" id="fFl"><button data-v="" class="on">Alle</button><button data-v="vfl">Vor-FL</button><button data-v="fl">Facelift</button></div></div>
       <div><span class="lbl">Gebaut im Jahr</span><input id="fYear" type="number" min="1900" max="2100" placeholder="z. B. 2017"></div>
       <div><span class="lbl">Ansicht</span><select id="fView"></select></div>
@@ -214,8 +242,9 @@ dialog::backdrop{background:#000c}
     </div>
     <div>
       <div class="topbar"><span class="lbl num" style="margin:0;min-width:180px" id="count"></span>
-        <select id="sort"><option value="name">Marke · Modell · Baujahr</option><option value="yearDesc">Baujahr, neueste zuerst</option><option value="added">Zuletzt hinzugefügt</option></select></div>
-      <div class="grid" id="grid"></div>
+        <div class="row"><select id="dlPreset" title="Größe und Format beim Herunterladen (einzeln und als ZIP)" aria-label="Größe und Format beim Herunterladen"><option value="orig">Download: Original</option><option value="j1600">Download: 1600×1200 · JPG</option><option value="j1200">Download: 1200 px · JPG</option><option value="j800">Download: 800 px · JPG</option><option value="w1200">Download: 1200 px · WebP</option><option value="w800">Download: 800 px · WebP</option></select>
+        <select id="sort"><option value="name">Marke · Modell · Baujahr</option><option value="yearDesc">Baujahr, neueste zuerst</option><option value="added">Zuletzt hinzugefügt</option></select></div></div>
+      <div class="grid" id="grid"></div><div id="more"></div>
     </div>
   </div>
 </section>
@@ -223,7 +252,7 @@ dialog::backdrop{background:#000c}
 
 <dialog id="dlg"><div class="dx"><button id="dClose" type="button" title="Schließen (Esc)" aria-label="Schließen">✕</button></div><div class="dlg">
   <h2 class="dlgt">Bild ansehen und bearbeiten</h2>
-  <div><div class="imgbox"><img id="dImg" alt=""></div></div>
+  <div><div class="imgbox" id="dBox" title="Klicken zum Vergrößern"><img id="dImg" alt=""><button type="button" class="dnav p" id="dPrev" title="Vorheriges Bild (Pfeil links)" aria-label="Vorheriges Bild">‹</button><button type="button" class="dnav n" id="dNext" title="Nächstes Bild (Pfeil rechts)" aria-label="Nächstes Bild">›</button><span class="dpos num" id="dPos"></span></div></div>
   <div>
     <div class="form" id="editForm"></div>
     <div class="row" style="margin-top:var(--m)">
@@ -242,6 +271,11 @@ dialog::backdrop{background:#000c}
     <p class="hint" id="libInfo"></p>
     <div class="row"><button class="btn pri" id="libNew" style="min-width:0;height:var(--ctl);font-size:17px">Neue Mediathek anlegen …</button><button id="libOpen">Vorhandene öffnen …</button><button id="libReindex">Neu einlesen</button><button id="libMigrate" class="hidden">Browser-Bilder übernehmen</button></div>
   </section>
+  <section class="set" id="trashSet">
+    <span class="lbl">Papierkorb</span>
+    <p class="hint">Gelöschte Bilder bleiben im Papierkorb der Mediathek, bis du ihn leerst. Dort lassen sie sich wiederherstellen.</p>
+    <div class="row"><button id="trashBtn">Papierkorb öffnen</button></div>
+  </section>
   <section class="set">
     <span class="lbl">Marken &amp; Modelle</span>
     <p class="hint">Marken, Modelle und Generationen mit Bauzeit und Facelift-Jahr, dazu Karosserie und Ansicht. Ergänzen, entfernen, Reihenfolge ändern.</p>
@@ -255,8 +289,8 @@ dialog::backdrop{background:#000c}
   </section>
   <section class="set">
     <span class="lbl">Sicherung</span>
-    <p class="hint">Alle Bilder mit Angaben als eine Datei, z. B. zum Umziehen oder für Browser ohne Ordner-Zugriff.</p>
-    <div class="row"><button id="exportBtn">Backup-Datei speichern</button><button id="importBtn">Backup-Datei laden</button><input type="file" id="importFile" accept=".json" class="hidden"></div>
+    <p class="hint">Alle Bilder mit Angaben als eine ZIP-Datei, z. B. zum Umziehen oder für Browser ohne Ordner-Zugriff. Ältere Backup-Dateien (.json) lassen sich weiter laden.</p>
+    <div class="row"><button id="exportBtn">Backup speichern (ZIP)</button><button id="importBtn">Backup laden</button><input type="file" id="importFile" accept=".zip,.json" class="hidden"></div>
   </section>
 </div></dialog>
 
@@ -265,12 +299,12 @@ dialog::backdrop{background:#000c}
   <div style="font-size:22px;font-weight:700" class="num" id="updVer"></div>
   <span class="lbl num" style="margin:0" id="updCur"></span>
   <ul id="updNotes"></ul>
-  <div class="row"><button id="updLater">Später</button><button class="btn pri" id="updGo" style="min-width:0;height:var(--ctl);font-size:17px">Aktualisieren</button></div>
+  <div class="row"><button id="updLater">Später</button><button class="btn pri" id="updGo" style="min-width:152px;height:var(--ctl);font-size:17px">Aktualisieren</button></div>
 </div>
 
 <div class="selbar hidden" id="selbar">
   <span class="lbl num" id="selCount">0 ausgewählt</span>
-  <button id="selAllVis">Alle Treffer auswählen</button>
+  <button id="selAllVis" class="num" style="min-width:214px">Alle Treffer auswählen</button>
   <button class="btn pri" id="selZip" style="min-width:0;height:var(--ctl);font-size:17px">Herunterladen (ZIP)</button>
   <button id="selEdit">Gemeinsam ändern</button>
   <button class="btn danger" id="selDel">Löschen</button>
@@ -302,6 +336,13 @@ dialog::backdrop{background:#000c}
   </div></div>
 </div></dialog>
 
+<dialog id="trashDlg" style="max-width:min(760px,96vw)"><div class="dx"><button id="trashX" type="button" title="Schließen (Esc)" aria-label="Schließen">✕</button></div><div style="padding:var(--m)">
+  <h2 class="dlgt" style="margin-bottom:6px">Papierkorb</h2>
+  <p class="hint num" style="margin:0 0 var(--m);height:1.3em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis" id="trashInfo"></p>
+  <div class="tlist" id="trashList"></div>
+  <div class="row" style="margin-top:var(--m)"><button class="btn danger" id="trashEmpty">Papierkorb leeren</button></div>
+</div></dialog>
+
 <dialog id="bulkDlg" style="max-width:min(760px,96vw)"><div class="dx"><button id="bulkX" type="button" title="Schließen (Esc)" aria-label="Schließen">✕</button></div><div style="padding:var(--m)">
   <h2 class="dlgt" style="margin-bottom:6px" id="bulkTitle">Gemeinsam ändern</h2>
   <p class="hint" style="margin:0 0 var(--m)">Nur was du hier ausfüllst, wird bei allen ausgewählten Bildern geändert. Leere Felder bleiben, wie sie sind.</p>
@@ -316,12 +357,13 @@ dialog::backdrop{background:#000c}
     <div><span class="lbl">Ansicht</span><select id="b_view"></select></div>
     <div class="full"><span class="lbl">Tags hinzufügen</span><div id="b_addSpecs"></div></div>
     <div class="full"><span class="lbl">Tags entfernen</span><div id="b_rmSpecs"></div></div>
+    <div class="full"><span class="lbl">Artikelnummern hinzufügen · mit Komma trennen</span><input id="b_artnr" autocomplete="off" placeholder="unverändert"></div>
     <div class="full"><span class="lbl">Angaben geprüft</span><div class="seg" id="b_ver"><button type="button" data-v="keep" class="on">Unverändert</button><button type="button" data-v="1">Ja, geprüft</button><button type="button" data-v="0">Nein, ungeprüft</button></div></div>
   </div>
   <div class="row" style="margin-top:var(--m)"><button class="btn pri" id="bulkSave">Übernehmen</button><button id="bulkClose">Abbrechen</button></div>
 </div></dialog>
 
-<div id="toast"></div>
+<div id="toast" popover="manual" role="status"></div>
 
 
 <script>
@@ -333,7 +375,16 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
 const SCHEMA=1, SIDE='.auto.json';
 const VIEWS=['','Front','Front schräg','Seite','Heck','Heck schräg','Innenraum','Cockpit','Felge/Detail','Motor','Sonstiges'];
-function toast(msg,bad){const t=$('toast');t.textContent=msg;t.className='show'+(bad?' bad':'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='',bad?6000:3000)}
+// Meldung unten in der Mitte. Als Popover liegt sie auch über offenen Fenstern (sonst wäre sie hinter deren Abdunklung kaum zu sehen).
+// Mit act={label,fn} bekommt die Meldung einen Knopf (z. B. „Rückgängig“) und bleibt länger stehen.
+function toast(msg,bad,act){const t=$('toast'),hide=()=>{t.className='';try{t.hidePopover()}catch{}};t.textContent=msg;
+  if(act){const b=document.createElement('button');b.type='button';b.textContent=act.label;b.onclick=()=>{clearTimeout(t._t);hide();act.fn()};t.append(b)}
+  try{if(t.matches(':popover-open'))t.hidePopover();t.showPopover()}catch{}
+  t.className='show'+(bad?' bad':'')+(act?' act':'');clearTimeout(t._t);t._t=setTimeout(hide,act?12000:bad?6000:3000)}
+
+// Laufende Schreibvorgänge: der Abgleich mit dem Ordner wartet darauf und verwirft Ergebnisse, die währenddessen veraltet sind
+let writes=0,writing=0;
+async function track(fn){writing++;writes++;try{return await fn()}finally{writing--;writes++}}
 
 // ---------- Fingerabdruck (wie Loomn: SHA-256) ----------
 async function sha256(blob){const h=await crypto.subtle.digest('SHA-256',await blob.arrayBuffer());return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
@@ -343,15 +394,30 @@ function imgSize(blob){return new Promise(r=>{const u=URL.createObjectURL(blob),
 const pad=n=>String(n).padStart(2,'0');
 function clean(s,max=24){let o=String(s||'').replace(/[\/\\:?*"<>|_.,;'`´#%&{}\[\]()!$@=+~^\n\r\t]/g,' ').trim().split(/\s+/).join('-');if(o.length>max)o=o.slice(0,max);return o||'x'}
 function dayFolder(d){return ['Bilder',d.getFullYear(),`${d.getFullYear()}-${pad(d.getMonth()+1)}`]}
-function fileName(r,ext){const d=new Date(r.importedAt);const st=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+function fileName(r,ext,idLen=4){let d=new Date(r.importedAt);if(isNaN(d))d=new Date();const st=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
   const fl=r.facelift==='fl'?'FL':r.facelift==='vfl'?'VFL':'';
-  return [st,clean(r.brand,16),clean(r.model,20),r.gen?clean(r.gen,12):'',fl,r.id.replace(/-/g,'').slice(0,4)].filter(Boolean).join('_')+'.'+ext}
+  return [st,clean(r.brand,16),clean(r.model,20),r.gen?clean(r.gen,12):'',fl,String(r.id).replace(/[^a-z0-9]/gi,'').slice(0,idLen)].filter(Boolean).join('_')+'.'+ext}
 const extOf=n=>((n||'').match(/\.([a-z0-9]+)$/i)||[,'jpg'])[1].toLowerCase();
+const MIME_EXT={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','image/avif':'avif','image/bmp':'bmp'};
+// Freien Dateinamen finden: ist der Name schon vergeben (viele Bilder desselben Autos in derselben Minute), wird die Kennung länger.
+// So überschreibt ein neues Bild nie ein vorhandenes.
+const exists=async(d,n)=>{try{await d.getFileHandle(n);return true}catch(e){if(e.name==='NotFoundError')return false;throw e}};
+async function freeName(d,make,keep){for(const n of [4,8,12,32]){const name=make(n);if(name===keep||(!(await exists(d,name))&&!(await exists(d,name+SIDE))))return name}
+  return make(4).replace(/(\.\w+)$/,'-'+Math.random().toString(36).slice(2,8)+'$1')}
 
 // ---------- Datensatz (Begleitdatei) ----------
 // Unbekannte Felder bleiben beim Speichern erhalten (wie Loomn), interne Felder beginnen mit _.
 function sidecarJSON(r){const o={};for(const k in r)if(!k.startsWith('_'))o[k]=r[k];return JSON.stringify(o,null,2)}
-function normalize(o){return Object.assign({schema:SCHEMA,brand:'',model:'',gen:'',body:'',facelift:'',from:null,to:null,view:'',color:'',specs:[],notes:'',verified:false},o,{specs:Array.isArray(o.specs)?o.specs:[]})}
+// Von Hand geänderte oder beschädigte Begleitdateien dürfen die App nicht aus dem Tritt bringen: Texte sind Texte, Jahre sind Zahlen.
+// Artikelnummern: Vergleich ohne Groß-/Kleinschreibung, Leerzeichen, Bindestriche und Punkte
+const artKey=s=>String(s||'').toLowerCase().replace(/[^a-z0-9äöüß]/g,'');
+const parseArt=s=>{const out=[];for(const t of String(s||'').split(/[,;\n]+/)){const v=t.trim().replace(/\s+/g,' ');if(v&&!out.some(x=>artKey(x)===artKey(v)))out.push(v)}return out};
+function normalize(o){const r=Object.assign({schema:SCHEMA,brand:'',model:'',gen:'',body:'',facelift:'',from:null,to:null,view:'',color:'',specs:[],artnr:[],notes:'',verified:false},o);
+  r.artnr=Array.isArray(o.artnr)?o.artnr.filter(x=>x!=null&&x!=='').map(String):[];
+  for(const k of ['brand','model','gen','body','facelift','view','color','notes'])r[k]=r[k]==null?'':String(r[k]);
+  r.specs=Array.isArray(o.specs)?o.specs.filter(x=>x!=null&&x!=='').map(String):[];
+  for(const k of ['from','to']){const n=r[k]==null||r[k]===''?NaN:+r[k];r[k]=Number.isFinite(n)?n:null}
+  return r}
 
 // ---------- Einstellungen + Browser-Speicher (IndexedDB) ----------
 let idb;
@@ -375,20 +441,22 @@ const THUMB=480;
 async function makeThumb(blob){const bmp=await createImageBitmap(blob);const k=Math.min(1,THUMB/Math.max(bmp.width,bmp.height));
   const c=document.createElement('canvas');c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);const g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(bmp,0,0,c.width,c.height);bmp.close();
   return new Promise(r=>c.toBlob(r,'image/jpeg',0.82))}
-function DirStore(root,meta){return{mode:'dir',name:root.name,root,meta,
+function DirStore(root,meta){const s={mode:'dir',name:root.name,root,meta,
   async dir(parts,create=true){let d=root;for(const p of parts)d=await d.getDirectoryHandle(String(p),{create});return d},
   async writeFile(dir,name,data){const fh=await dir.getFileHandle(name,{create:true});const w=await fh.createWritable();await w.write(data);await w.close();return fh},
   // Einlesen aus den Begleitdateien. Unveränderte Dateien kommen aus einem lokalen Zwischenspeicher (schneller Start auch mit Google Drive).
-  async list(){let bilder;try{bilder=await root.getDirectoryHandle('Bilder')}catch{return []}
+  async list(){let bilder;try{bilder=await root.getDirectoryHandle('Bilder')}catch(e){
+      // Leer ist das Archiv nur, wenn der Ordner „Bilder“ wirklich fehlt. Ist die Mediathek gerade nicht erreichbar (Drive nicht bereit), nichts verwerfen.
+      if(e.name==='NotFoundError'&&await readMeta(root))return [];throw e}
     const ckey='idx:'+meta.id;let cache={};try{cache=(await setting(ckey))||{}}catch{}
-    const next={},byId=new Map();
+    const next={},byId=new Map();let dirty=false;
     const walk=async(d,rel)=>{for await(const [n,h] of d.entries()){
       if(isJunk(n))continue;
       if(h.kind==='directory'){await walk(h,[...rel,n]);continue}
       if(!n.endsWith(SIDE))continue;
       const key=rel.join('/')+'/'+n;
       try{const f=await h.getFile();let o;const c=cache[key];
-        if(c&&c.lm===f.lastModified&&c.size===f.size)o=c.rec;else o=JSON.parse(await f.text());
+        if(c&&c.lm===f.lastModified&&c.size===f.size)o=c.rec;else{o=JSON.parse(await f.text());dirty=true}
         if(!o||!o.id||!o.file)continue;next[key]={lm:f.lastModified,size:f.size,rec:o};
         const r=normalize({...o});r._dir=d;r._rel=rel.join('/');r._key=key;r._stamp=key+'@'+f.lastModified;
         // Konfliktkopien (z. B. „… (1).auto.json“ von Google Drive): neuere Fassung gewinnt
@@ -397,28 +465,49 @@ function DirStore(root,meta){return{mode:'dir',name:root.name,root,meta,
         else if(String(r.editedAt||r.importedAt)>String(old.editedAt||old.importedAt)){r._dupes=[...old._dupes,[old._dir,old._key.split('/').pop()]];byId.set(r.id,r)}
         else old._dupes.push([d,n])
       }catch(e){console.warn('Begleitdatei unlesbar',key,e)}}};
-    await walk(bilder,['Bilder']);try{await setting(ckey,next)}catch{}
+    await walk(bilder,['Bilder']);
+    if(dirty||Object.keys(next).length!==Object.keys(cache).length){try{await setting(ckey,next)}catch{}}
     return [...byId.values()]},
   async add(r,blob){const parts=dayFolder(new Date(r.importedAt));const d=await this.dir(parts);
-    r.file=fileName(r,extOf(r.originalName));
+    const ext=MIME_EXT[blob.type]||extOf(r.originalName);r.file=await freeName(d,n=>fileName(r,ext,n));
     await this.writeFile(d,r.file,blob);
     // geprüfte Kopie: zurücklesen und Fingerabdruck vergleichen
     const back=await (await d.getFileHandle(r.file)).getFile();
     if(back.size!==blob.size||await sha256(back)!==r.sha256){await d.removeEntry(r.file).catch(()=>{});throw new Error('Kopie fehlerhaft (Prüfsumme stimmt nicht)')}
-    await this.writeFile(d,r.file+SIDE,sidecarJSON(r));r._dir=d;r._rel=parts.join('/');r._key=r._rel+'/'+r.file+SIDE;
+    try{await this.writeFile(d,r.file+SIDE,sidecarJSON(r))}catch(e){await d.removeEntry(r.file).catch(()=>{});throw e}  // kein Bild ohne Begleitdatei zurücklassen
+    r._dir=d;r._rel=parts.join('/');r._key=r._rel+'/'+r.file+SIDE;
     try{await this.writeFile(await this.dir(['Archivdaten','Vorschauen']),r.id+'.jpg',await makeThumb(blob))}catch(e){console.warn('Vorschau',e)}},
   async update(r){// Dateiname folgt den Angaben (Datum und Kennung bleiben), wenn der Browser Umbenennen kann
-    const want=fileName(r,extOf(r.file));
-    if(want!==r.file){try{const fh=await r._dir.getFileHandle(r.file);if(fh.move){await fh.move(want);await r._dir.removeEntry(r.file+SIDE).catch(()=>{});r.file=want;r._key=r._rel+'/'+want+SIDE}}catch(e){console.warn('Umbenennen nicht möglich',e)}}
-    await this.writeFile(r._dir,r.file+SIDE,sidecarJSON(r));await this.dropDupes(r)},
+    // Reihenfolge: umbenennen, neue Begleitdatei schreiben, erst dann die alte entfernen. Schlägt das Schreiben fehl, wird zurückbenannt.
+    const old=r.file;let moved=false;
+    try{const want=await freeName(r._dir,n=>fileName(r,extOf(old),n),old);
+      if(want!==old){const fh=await r._dir.getFileHandle(old);if(fh.move){await fh.move(want);moved=true;r.file=want;r._key=r._rel+'/'+want+SIDE}}}
+    catch(e){console.warn('Umbenennen nicht möglich',e)}
+    try{await this.writeFile(r._dir,r.file+SIDE,sidecarJSON(r))}
+    catch(e){if(moved){try{await (await r._dir.getFileHandle(r.file)).move(old);r.file=old;r._key=r._rel+'/'+old+SIDE}catch{}}throw e}
+    if(moved)await r._dir.removeEntry(old+SIDE).catch(()=>{});
+    await this.dropDupes(r)},
   // übrig gebliebene Konfliktkopien derselben Begleitdatei aufräumen
   async dropDupes(r){for(const [d,n] of r._dupes||[])if(!(d===r._dir&&n===r.file+SIDE))await d.removeEntry(n).catch(()=>{});r._dupes=[]},
   async remove(r){// nicht endgültig löschen: in den Papierkorb der Mediathek
-    const pk=await this.dir(['Archivdaten','Papierkorb']);const b=await this.blob(r);
-    await this.writeFile(pk,r.file,b);await this.writeFile(pk,r.file+SIDE,sidecarJSON({...r,deletedAt:new Date().toISOString()}));
-    await r._dir.removeEntry(r.file).catch(()=>{});await r._dir.removeEntry(r.file+SIDE);await this.dropDupes(r);
+    // Fehlt die Bilddatei schon (z. B. von Hand gelöscht), lassen sich die Angaben trotzdem entfernen
+    const pk=await this.dir(['Archivdaten','Papierkorb']),gone=e=>{if(e.name!=='NotFoundError')throw e};let b=null;
+    try{b=await this.blob(r)}catch(e){gone(e)}
+    if(b)await this.writeFile(pk,r.file,b);await this.writeFile(pk,r.file+SIDE,sidecarJSON({...r,deletedAt:new Date().toISOString()}));
+    await r._dir.removeEntry(r.file).catch(gone);await r._dir.removeEntry(r.file+SIDE).catch(gone);await this.dropDupes(r);
     try{await (await this.dir(['Archivdaten','Vorschauen'],false)).removeEntry(r.id+'.jpg')}catch{}},
   async blob(r){return (await r._dir.getFileHandle(r.file)).getFile()},
+  // Papierkorb: ansehen, wiederherstellen, endgültig löschen
+  async trashList(){let pk;try{pk=await this.dir(['Archivdaten','Papierkorb'],false)}catch(e){if(e.name==='NotFoundError')return [];throw e}const out=[];
+    for await(const [n,h] of pk.entries()){if(h.kind!=='file'||isJunk(n)||!n.endsWith(SIDE))continue;
+      try{const o=JSON.parse(await (await h.getFile()).text());if(o&&o.id&&o.file){const r=normalize(o);r._pk=pk;r._side=n;out.push(r)}}catch(e){console.warn('Papierkorb',n,e)}}
+    return out.sort((a,b)=>String(b.deletedAt||'').localeCompare(String(a.deletedAt||'')))},
+  async trashBlob(t){return (await t._pk.getFileHandle(t.file)).getFile()},
+  async restore(t){const blob=await this.trashBlob(t);const r=normalize(JSON.parse(sidecarJSON(t)));delete r.deletedAt;
+    if(!r.importedAt||isNaN(new Date(r.importedAt)))r.importedAt=new Date().toISOString();
+    r.originalName=r.originalName||t.file;r.sha256=await sha256(blob);
+    await this.add(r,blob);await this.purge(t);return r},
+  async purge(t){const gone=e=>{if(e.name!=='NotFoundError')throw e};await t._pk.removeEntry(t.file).catch(gone);await t._pk.removeEntry(t._side).catch(gone)},
   // Eigene Marken/Modelle/Generationen: Archivdaten/katalog-eigene.json (Konfliktkopien von Drive werden zusammengeführt)
   async loadOwnCat(){const map=new Map();let d;try{d=await this.dir(['Archivdaten'],false)}catch{return []}
     for await(const [n,h] of d.entries()){if(h.kind!=='file'||!/^katalog-eigene.*\.json$/.test(n))continue;
@@ -438,7 +527,9 @@ function DirStore(root,meta){return{mode:'dir',name:root.name,root,meta,
   // Vorschaubild (480 px) aus Archivdaten/Vorschauen, fehlt es, wird es erzeugt
   async thumb(r){try{return await (await (await this.dir(['Archivdaten','Vorschauen'],false)).getFileHandle(r.id+'.jpg')).getFile()}catch{}
     const b=await this.blob(r);try{const t=await makeThumb(b);this.writeFile(await this.dir(['Archivdaten','Vorschauen']),r.id+'.jpg',t).catch(()=>{});return t}catch{return b}}
-}}
+  };
+  for(const k of ['add','update','remove','restore','purge']){const f=s[k];s[k]=(...a)=>track(()=>f.apply(s,a))}
+  return s}
 const canDir=!!window.showDirectoryPicker;
 
 async function readMeta(dir){try{return JSON.parse(await (await (await dir.getFileHandle('mediathek.auto.json')).getFile()).text())}catch{return null}}
@@ -447,7 +538,7 @@ async function createLibrary(parent){
   let meta=await readMeta(root);
   if(!meta){meta={app:'auto-bildarchiv',id:uid(),schema:SCHEMA,created:new Date().toISOString()};
     const s=DirStore(root,meta);await s.writeFile(root,'mediathek.auto.json',JSON.stringify(meta,null,2));
-    await s.writeFile(root,'LIESMICH.txt','Auto-Bildarchiv – Mediathek\n\nBilder/JJJJ/JJJJ-MM/  Bilder mit Begleitdatei (.auto.json). Die Begleitdatei enthält Marke, Modell, Generation, Facelift, Baujahr usw. und ist die Wahrheit.\nArchivdaten/katalog.json  letzte Angaben\nArchivdaten/Papierkorb/  gelöschte Bilder (von Hand leeren)\n\nNichts von Hand umbenennen oder verschieben. Zum Öffnen: Auto-Bildarchiv › Mediathek › Vorhandene öffnen.\n');
+    await s.writeFile(root,'LIESMICH.txt','Auto-Bildarchiv – Mediathek\n\nBilder/JJJJ/JJJJ-MM/  Bilder mit Begleitdatei (.auto.json). Die Begleitdatei enthält Marke, Modell, Generation, Facelift, Baujahr usw. und ist die Wahrheit.\nArchivdaten/katalog.json  Auswahllisten (Marken, Modelle, Generationen, Karosserie, Ansicht, Tags)\nArchivdaten/Vorschauen/  kleine Vorschaubilder, werden bei Bedarf neu erzeugt\nArchivdaten/Papierkorb/  gelöschte Bilder (von Hand leeren)\n\nNichts von Hand umbenennen oder verschieben. Zum Öffnen: Auto-Bildarchiv › Einstellungen › Vorhandene öffnen.\n');
     await s.dir(['Bilder']);await s.dir(['Archivdaten'])}
   return {root,meta}}
 
@@ -456,31 +547,37 @@ let store=BrowserStore, cars=[], queue=[], catalog={};
 const urls=new Map();
 const thumbs=new Map();
 const ukey=r=>r.id+'|'+(r._stamp||'');
-async function urlFor(r){const k=ukey(r);if(!urls.has(k))urls.set(k,URL.createObjectURL(await store.blob(r)));return urls.get(k)}
-async function thumbFor(r){const k=ukey(r);if(!thumbs.has(k))thumbs.set(k,URL.createObjectURL(await store.thumb(r)));return thumbs.get(k)}
+const pending=new Map();
+function cachedUrl(m,tag,r,get){const k=ukey(r);if(m.has(k))return Promise.resolve(m.get(k));const pk=tag+k;
+  if(!pending.has(pk))pending.set(pk,get().then(b=>{const u=URL.createObjectURL(b);m.set(k,u);return u}).finally(()=>pending.delete(pk)));
+  return pending.get(pk)}
+const urlFor=r=>cachedUrl(urls,'u',r,()=>store.blob(r)),thumbFor=r=>cachedUrl(thumbs,'t',r,()=>store.thumb(r));
 function dropUrls(){urls.forEach(u=>URL.revokeObjectURL(u));urls.clear();thumbs.forEach(u=>URL.revokeObjectURL(u));thumbs.clear()}
 // Abgleich: Änderungen von anderen Rechnern (über Google Drive) regelmäßig übernehmen
 const sig=list=>list.map(c=>c.id+'|'+(c._stamp||'')+'|'+(c._dupes||[]).map(x=>x[1]).join('+')).sort().join(',');
-let scanning=false,lastScan=0;
-async function rescan(force){if(store.mode!=='dir'||scanning||saving)return;if(!force&&Date.now()-lastScan<5000)return;
-  scanning=true;lastScan=Date.now();
+let scanning=false,lastScan=0,lost=false;
+async function rescan(force){if(store.mode!=='dir'||scanning||saving||writing)return;if(!force&&Date.now()-lastScan<5000)return;
+  scanning=true;lastScan=Date.now();const w=writes,st=store;
   try{try{if(!catBusy){const d=await store.loadCatDoc();if(d&&!catBusy&&JSON.stringify(d)!==JSON.stringify(catDoc)){catDoc=d;refreshLists();if($('catDlg').open)renderCat()}}}catch{}
-    const fresh=await store.list();if(sig(fresh)===sig(cars))return;
+    const fresh=await store.list();
+    if(w!==writes||st!==store||saving){lastScan=0;return}  // inzwischen wurde hier gespeichert: dieser Stand wäre veraltet, beim nächsten Mal neu lesen
+    if(lost){lost=false;updateStatus()}
+    if(sig(fresh)===sig(cars))return;
     const keep=new Set(fresh.map(ukey));for(const m of [urls,thumbs])for(const [k,u] of m)if(!keep.has(k)){URL.revokeObjectURL(u);m.delete(k)}
     cars=fresh;if(cur&&$('dlg').open){const n=cars.find(c=>c.id===cur.id);if(n)cur=n;else{$('dlg').close();toast('Dieses Bild wurde auf einem anderen Rechner gelöscht',true)}}
     refreshLists();fillFilters();render();updateStatus();queue.forEach(markDup);renderQueue()}
-  catch(e){console.warn('Abgleich',e);if(e.name==='NotFoundError'||e.name==='NotAllowedError'){updateStatus(true)}}
+  catch(e){console.warn('Abgleich',e);lost=true;updateStatus(true)}
   finally{scanning=false}}
 setInterval(()=>{if(document.visibilityState==='visible')rescan()},30000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')rescan()});
 window.addEventListener('focus',()=>rescan());
 
-async function useStore(s){store=s;dropUrls();cars=await s.list();try{ownCat=await s.loadOwnCat()}catch{ownCat=[]}try{catDoc=await s.loadCatDoc()}catch{catDoc=null}try{catalog=(await setting('catalog'))||{}}catch{catalog={}}
-  if(catalog.lastInput)fillForm('u_',{...catalog.lastInput,verified:false});
+async function useStore(s,keepForm){const list=await s.list();store=s;lost=false;dropUrls();cars=list;try{ownCat=await s.loadOwnCat()}catch{ownCat=[]}try{catDoc=await s.loadCatDoc()}catch{catDoc=null}try{catalog=(await setting('catalog'))||{}}catch{catalog={}}
+  if(catalog.lastInput&&!keepForm)fillForm('u_',{...catalog.lastInput,verified:false});
   updateStatus();refreshLists();fillFilters();render();queue.forEach(markDup);renderQueue()}
-function updateStatus(lost){const dir=store.mode==='dir';$('dot').className='dot '+(dir&&!lost?'on':'warn');if(lost){$('statusTxt').textContent='Mediathek nicht erreichbar';return}
+function updateStatus(lost){const dir=store.mode==='dir';$('dot').className='dot '+(dir&&!lost?'on':'warn');if(lost){$('statusTxt').textContent='Mediathek nicht erreichbar';$('status').title='Der Mediathek-Ordner ist gerade nicht erreichbar (Google Drive gestartet?). Die App versucht es automatisch weiter.';return}
   $('statusTxt').textContent=dir?`Mediathek: ${store.name} · ${cars.length} Bilder`:`Nur im Browser · ${cars.length} Bilder`;
-  $('status').title=dir?'Bilder liegen im Mediathek-Ordner':'Bilder liegen nur in diesem Browser. Unter „Mediathek“ einen Ordner anlegen.';}
+  $('status').title=dir?'Bilder liegen im Mediathek-Ordner':'Bilder liegen nur in diesem Browser. Unter „Einstellungen“ eine Mediathek anlegen.';}
 
 // ---------- Fahrzeugkatalog (Vorschläge) ----------
 // Format je Modell: "Generation:von-bis:Facelift-Jahr|…"  (bis leer = läuft noch, Facelift leer = keins/unbekannt)
@@ -642,6 +739,7 @@ function formHTML(p){return `
  <div><span class="lbl">Baujahr bis</span><input id="${p}to" type="number" min="1900" max="2100" placeholder="leer = bis heute"></div>
  <div><span class="lbl">Ansicht</span><select id="${p}view"></select></div>
  <div><span class="lbl">Farbe</span><input id="${p}color" placeholder="z. B. Alpinweiß"></div>
+ <div class="full"><span class="lbl">Artikelnummern · mit Komma trennen</span><input id="${p}artnr" autocomplete="off" placeholder="z. B. 4711-22, 0815-01"></div>
  <div class="full"><span class="lbl">Tags · Ausstattung und Spezifikationen</span><div id="${p}specs"></div></div>
  <div class="full"><span class="lbl">Notizen / Quelle</span><textarea id="${p}notes" placeholder="z. B. Quelle, woran man das Facelift erkennt …"></textarea></div>
  <label class="chk full"><input type="checkbox" id="${p}verified"> Angaben geprüft (Modell, Facelift und Baujahr stimmen sicher)</label>`}
@@ -650,11 +748,12 @@ const segVal=el=>el.querySelector('.on')?.dataset.v??'';
 const segSet=(el,v)=>[...el.children].forEach(x=>x.classList.toggle('on',x.dataset.v===(v??'')));
 function readForm(p){const n=v=>v===''?null:+v;return{brand:$(p+'brand').value.trim(),model:$(p+'model').value.trim(),gen:$(p+'gen').value.trim(),body:$(p+'body').value.trim(),
   facelift:segVal($(p+'fl')),from:n($(p+'from').value),to:n($(p+'to').value),view:$(p+'view').value,color:$(p+'color').value.trim(),
-  specs:tagFields[p+'specs'].get(),notes:$(p+'notes').value.trim(),verified:$(p+'verified').checked}}
+  specs:tagFields[p+'specs'].get(),artnr:parseArt($(p+'artnr').value),notes:$(p+'notes').value.trim(),verified:$(p+'verified').checked}}
 function fillForm(p,c){fillCascade(p,c.brand||'',c.model||'',c.gen||'');fillSimple(p+'body',catList('bodies'),c.body||'','–','＋ Neue Karosserie …');fillSimple(p+'view',catList('views'),c.view||'','–','＋ Neue Ansicht …');
-  ['color','notes'].forEach(k=>$(p+k).value=c[k]||'');
+  ['color','notes'].forEach(k=>$(p+k).value=c[k]||'');$(p+'artnr').value=(c.artnr||[]).join(', ');
   $(p+'from').value=c.from??'';$(p+'to').value=c.to??'';tagFields[p+'specs'].set(c.specs||[]);$(p+'verified').checked=!!c.verified;segSet($(p+'fl'),c.facelift)}
-function validate(d){if(!d.brand||!d.model)return'Marke und Modell sind Pflicht.';if(d.from&&d.to&&d.to<d.from)return'„Baujahr bis“ liegt vor „von“.';return''}
+const yearOk=v=>v==null||(Number.isInteger(v)&&v>=1900&&v<=2100);
+function validate(d){if(!d.brand||!d.model)return'Marke und Modell sind Pflicht.';if(!yearOk(d.from)||!yearOk(d.to))return'Baujahr bitte als Jahreszahl zwischen 1900 und 2100 angeben.';if(d.from&&d.to&&d.to<d.from)return'„Baujahr bis“ liegt vor „von“.';return''}
 $('tagForm').innerHTML=formHTML('u_');wireSeg($('u_fl'),()=>suggestYears('u_'));
 $('editForm').innerHTML=formHTML('e_');wireSeg($('e_fl'),()=>suggestYears('e_'));
 tagField('u_specs');tagField('e_specs');tagField('b_addSpecs');tagField('b_rmSpecs',{ph:'Tag wählen',allowNew:false});
@@ -675,13 +774,40 @@ fileIn.onchange=()=>{addFiles(fileIn.files);fileIn.value=''};
 ['dragenter','dragover'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('over')}));
 ['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('over')}));
 drop.addEventListener('drop',ev=>addFiles(ev.dataTransfer.files));
+// Dateien, die neben das Feld fallen, darf der Browser nicht als Seite öffnen (die App wäre sonst weg): im Einsortieren-Reiter zählen sie trotzdem
+const hasFiles=ev=>[...(ev.dataTransfer?.types||[])].includes('Files');
+window.addEventListener('dragover',ev=>{if(hasFiles(ev))ev.preventDefault()});
+window.addEventListener('drop',ev=>{if(!hasFiles(ev))return;ev.preventDefault();if(ev.target.closest?.('#drop'))return;
+  if(!$('viewUp').classList.contains('hidden')&&!document.querySelector('dialog[open]'))addFiles(ev.dataTransfer.files)});
 document.addEventListener('paste',ev=>{if($('viewUp').classList.contains('hidden'))return;const f=[...(ev.clipboardData?.items||[])].filter(i=>i.type.startsWith('image/')).map(i=>i.getAsFile());if(f.length)addFiles(f)});
-function markDup(q){if(!q.sha)return;const c=cars.find(c=>c.sha256===q.sha||(c.origSha256&&c.origSha256===q.origSha));const twin=queue.find(o=>o!==q&&o.sha===q.sha&&queue.indexOf(o)<queue.indexOf(q));
+const BAD='Format nicht lesbar';
+const sameImg=(c,q)=>c.sha256===q.sha||c.sha256===q.origSha||(c.origSha256&&c.origSha256===q.origSha);
+function markDup(q){if(!q.sha)return;if(q.bad){q.dup=BAD;q.sel=false;return}const c=cars.find(c=>sameImg(c,q));const twin=queue.find(o=>o!==q&&o.sha===q.sha&&queue.indexOf(o)<queue.indexOf(q));
   q.dup=c?`schon drin: ${c.brand} ${c.model}`:twin?'doppelt in Liste':'';if(q.dup)q.sel=false}
+// Standortdaten (GPS) aus JPEG entfernen, ohne das Bild neu zu rechnen: der GPS-Block im EXIF wird geleert, ein XMP-Block mit GPS entfernt.
+// Ausrichtung, Aufnahmedatum und Bildqualität bleiben unverändert. Verkleinerte Bilder verlieren ihre Zusatzdaten ohnehin.
+function zeroGps(dv,t,end){try{const bo=dv.getUint16(t),le=bo===0x4949;if(!le&&bo!==0x4D4D)return false;const u16=o=>dv.getUint16(o,le),u32=o=>dv.getUint32(o,le);
+    const ifd0=t+u32(t+4),n=u16(ifd0),SZ=[0,1,1,2,4,8,1,1,2,4,8,4,8];
+    for(let i=0;i<n;i++){const e=ifd0+2+i*12;if(e+12>end)return false;if(u16(e)!==0x8825)continue;
+      const g=t+u32(e+8);if(g+2>end)return false;const gn=u16(g);if(!gn||g+2+gn*12>end)return false;
+      for(let j=0;j<gn;j++){const ge=g+2+j*12,size=(SZ[u16(ge+2)]||1)*u32(ge+4);if(size>4){const off=t+u32(ge+8);if(off+size<=end)for(let k=0;k<size;k++)dv.setUint8(off+k,0)}}
+      for(let k=0;k<gn*12;k++)dv.setUint8(g+2+k,0);dv.setUint16(g,0,le);return true}
+    return false}catch{return false}}
+async function stripGps(file){if(file.type!=='image/jpeg')return null;const b=new Uint8Array(await file.arrayBuffer());if(b[0]!==0xFF||b[1]!==0xD8)return null;
+  const dv=new DataView(b.buffer),cut=[];let p=2,changed=false;
+  while(p+4<=b.length&&b[p]===0xFF){const m=b[p+1];if(m===0xDA||m===0xD9)break;if((m>=0xD0&&m<=0xD7)||m===0x01){p+=2;continue}
+    const len=dv.getUint16(p+2);if(len<2||p+2+len>b.length)break;const st=p+4,e=p+2+len;
+    if(m===0xE1){let head='';for(let i=st;i<Math.min(e,st+36);i++)head+=String.fromCharCode(b[i]);
+      if(head.startsWith('Exif\0\0')){if(zeroGps(dv,st+6,e))changed=true}
+      else if(head.startsWith('http://ns.adobe.com/x')){let txt='';for(let i=st;i<e;i++)txt+=String.fromCharCode(b[i]);if(/GPS(Latitude|Longitude|Position)/.test(txt))cut.push([p,e])}}
+    p=e}
+  if(!changed&&!cut.length)return null;
+  const parts=[];let at=0;for(const [a,z] of cut){parts.push(b.subarray(at,a));at=z}parts.push(b.subarray(at));
+  return new File(parts,file.name,{type:'image/jpeg',lastModified:file.lastModified})}
 // Größere Bilder auf 1600×1200 verkleinern (Hochformat 1200×1600), Seitenverhältnis bleibt
 const MAX_W=1600,MAX_H=1200;
 async function shrink(file){
-  let bmp;try{bmp=await createImageBitmap(file)}catch{return {file,resized:false}}
+  let bmp;try{bmp=await createImageBitmap(file)}catch{return {file,bad:true}}
   const {width:w,height:h}=bmp,portrait=h>w,bw=portrait?MAX_H:MAX_W,bh=portrait?MAX_W:MAX_H;
   const k=Math.min(bw/w,bh/h);if(k>=1){bmp.close();return {file,resized:false}}
   const c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);
@@ -690,78 +816,98 @@ async function shrink(file){
   const blob=await new Promise(r=>c.toBlob(r,type,0.9));if(!blob)return {file,resized:false};
   const name=file.name.replace(/\.[^.]+$/,'')+(png?'.png':'.jpg');
   return {file:new File([blob],name,{type,lastModified:file.lastModified}),resized:`${w}×${h} → ${c.width}×${c.height}`}}
-async function addFiles(files){const add=[...files].filter(f=>f.type.startsWith('image/')).map(f=>({qid:uid(),file:f,url:URL.createObjectURL(f),sel:true,sha:null,dup:''}));
+async function addFiles(files){const all=[...files],add=all.filter(f=>f.type.startsWith('image/')).map(f=>({qid:uid(),file:f,url:URL.createObjectURL(f),sel:true,sha:null,dup:''}));
+  if(add.length<all.length)toast(`${all.length-add.length} ${all.length-add.length===1?'Datei ist kein Bild und wurde':'Dateien sind keine Bilder und wurden'} übersprungen`,true);
   queue.push(...add);renderQueue();
-  for(const q of add){q.origSha=await sha256(q.file);const s=await shrink(q.file);
-    if(s.resized){URL.revokeObjectURL(q.url);q.file=s.file;q.url=URL.createObjectURL(s.file);q.resized=s.resized}
-    q.sha=s.resized?await sha256(q.file):q.origSha;markDup(q);renderQueue()}}
+  // Ein unlesbares Bild (z. B. HEIC, TIFF oder beschädigt) darf die anderen nicht aufhalten
+  for(const q of add){try{q.origSha=await sha256(q.file);const s=await shrink(q.file);
+      if(s.bad)q.bad=true;
+      else if(s.resized){URL.revokeObjectURL(q.url);q.file=s.file;q.url=URL.createObjectURL(s.file);q.resized=s.resized}
+      else{const g=await stripGps(q.file).catch(()=>null);if(g){URL.revokeObjectURL(q.url);q.file=g;q.url=URL.createObjectURL(g);q.gps=true}}
+      q.sha=s.resized||q.gps?await sha256(q.file):q.origSha}
+    catch(e){console.warn('Bild unlesbar',q.file.name,e);q.bad=true;q.sha='-'}
+    markDup(q);if(queue.includes(q))renderQueue()}}
 function renderQueue(){$('qCount').textContent=queue.length;
-  $('queue').innerHTML=queue.map(q=>`<div class="q ${q.sel?'sel':''}" data-q="${q.qid}" title="${esc(q.file.name)}${q.resized?' · verkleinert '+q.resized:''}"><img src="${q.url}" alt="">${q.sha?'':'<div class="wait">prüfe …</div>'}${q.dup?`<div class="dup">${esc(q.dup)}</div>`:q.resized?`<div class="dup" style="background:#000b">verkleinert</div>`:''}<button class="x" data-x="${q.qid}" title="Entfernen">×</button></div>`).join('');
+  $('queue').innerHTML=queue.map(q=>`<div class="q ${q.sel?'sel':''}" data-q="${q.qid}" title="${esc(q.file.name)}${q.resized?' · verkleinert '+q.resized:q.gps?' · Standortdaten entfernt':''}"><img src="${q.url}" alt="">${q.sha?'':'<div class="wait">prüfe …</div>'}${q.dup?`<div class="dup">${esc(q.dup)}</div>`:q.resized?`<div class="dup" style="background:#000b">verkleinert</div>`:q.gps?`<div class="dup" style="background:#000b">Standort entfernt</div>`:''}<button class="x" data-x="${q.qid}" title="Entfernen">×</button></div>`).join('');
   const n=queue.filter(q=>q.sel&&!q.dup).length;$('saveBtn').disabled=!n||queue.some(q=>q.sel&&!q.sha);$('saveBtn').textContent=n>1?`${n} Bilder speichern`:'Speichern'}
 $('queue').onclick=e=>{const x=e.target.closest('[data-x]');if(x){const i=queue.findIndex(q=>q.qid===x.dataset.x);URL.revokeObjectURL(queue[i].url);queue.splice(i,1);return renderQueue()}
-  const el=e.target.closest('[data-q]');if(el){const q=queue.find(z=>z.qid===el.dataset.q);if(q.dup)return toast(q.dup+' – wird nicht doppelt gespeichert',true);q.sel=!q.sel;renderQueue()}};
+  const el=e.target.closest('[data-q]');if(el){const q=queue.find(z=>z.qid===el.dataset.q);if(q.bad)return toast('Dieses Bild kann der Browser nicht lesen (z. B. HEIC oder TIFF). Bitte als JPG oder PNG speichern.',true);if(q.dup)return toast(q.dup+' – wird nicht doppelt gespeichert',true);q.sel=!q.sel;renderQueue()}};
 $('selAll').onclick=()=>{const ok=queue.filter(q=>!q.dup);const all=ok.every(q=>q.sel);ok.forEach(q=>q.sel=!all);renderQueue()};
-$('viewUp').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'&&!$('saveBtn').disabled){e.preventDefault();$('saveBtn').click()}});
-let saving=false;
-$('saveBtn').onclick=async()=>{if(saving)return;const d=readForm('u_'),err=validate(d);if(err)return toast(err,true);rememberTags(d.specs);
-  saving=true;$('saveBtn').disabled=true;let ok=0;
+// Enter speichert, aber nicht aus dem Tag-Feld (dort wählt Enter einen Tag), aus Notizen oder auf einem Knopf
+$('viewUp').addEventListener('keydown',e=>{if(e.key!=='Enter'||e.defaultPrevented||e.isComposing||e.target.closest('textarea,button,.tagf'))return;
+  if(!$('saveBtn').disabled){e.preventDefault();$('saveBtn').click()}});
+let saving=0,upBusy=false;
+$('saveBtn').onclick=async()=>{if(upBusy)return;const d=readForm('u_'),err=validate(d);if(err)return toast(err,true);rememberTags(d.specs);
+  upBusy=true;saving++;$('saveBtn').disabled=true;let ok=0;const fails=[];
   try{for(const q of queue.filter(q=>q.sel&&!q.dup&&q.sha)){
-      if(cars.some(c=>c.sha256===q.sha||(c.origSha256&&c.origSha256===q.origSha))){q.dup='schon drin';continue}
-      const r=normalize({id:uid(),file:'',originalName:q.file.name,sha256:q.sha,size:q.file.size,...(q.resized?{origSha256:q.origSha,resizedFrom:q.resized}:{}),importedAt:new Date().toISOString(),...await imgSize(q.file),...d});
-      try{await store.add(r,q.file);cars.push(r);q.done=true;ok++}catch(e){toast(`${q.file.name}: ${e.message}`,true)}}
+      if(cars.some(c=>sameImg(c,q))){q.dup='schon drin';continue}
+      const r=normalize({id:uid(),file:'',originalName:q.file.name,sha256:q.sha,size:q.file.size,...(q.sha!==q.origSha?{origSha256:q.origSha}:{}),...(q.resized?{resizedFrom:q.resized}:{}),...(q.gps?{gpsRemoved:true}:{}),importedAt:new Date().toISOString(),...await imgSize(q.file),...d});
+      try{await store.add(r,q.file);cars.push(r);q.done=true;ok++}catch(e){console.warn('Speichern',q.file.name,e);fails.push(`${q.file.name}: ${e.message}`)}}
     queue.filter(q=>q.done).forEach(q=>URL.revokeObjectURL(q.url));queue=queue.filter(q=>!q.done);
     catalog.lastInput={...d,verified:false};await setting('catalog',catalog).catch(()=>{});
-  }finally{saving=false;queue.forEach(markDup);renderQueue();refreshLists();updateStatus()}
-  if(ok)toast(`✓ ${ok} gespeichert`)};
+  }finally{upBusy=false;saving--;queue.forEach(markDup);renderQueue();refreshLists();updateStatus()}
+  if(fails.length)toast(`${ok} gespeichert, ${fails.length} nicht · ${fails[0]}`,true);else if(ok)toast(`✓ ${ok} gespeichert`)};
 
 // ---------- Suche (wie Loomn Query: Gruppen werden kombiniert, Spezifikationen müssen alle passen) ----------
 let fFl='',fVer='',fSpecs=new Set();wireSeg($('fFl'),v=>{fFl=v;render()});wireSeg($('fVer'),v=>{fVer=v;render()});
-['fText','fYear'].forEach(i=>$(i).oninput=render);
-['fBrand','fModel','fGen','fView'].forEach(i=>$(i).onchange=()=>{fillFilters();render()});
+['fText','fYear','fArt'].forEach(i=>$(i).oninput=render);
+['fBrand','fModel','fGen','fBody','fColor','fView'].forEach(i=>$(i).onchange=()=>{fillFilters();render()});
 $('sort').onchange=render;
 $('fSpecs').onclick=e=>{const c=e.target.closest('[data-s]');if(!c)return;const s=c.dataset.s;fSpecs.has(s)?fSpecs.delete(s):fSpecs.add(s);fillFilters();render()};
-$('fReset').onclick=()=>{['fText','fYear','fBrand','fModel','fGen','fView'].forEach(i=>$(i).value='');fVer='';segSet($('fVer'),'');fFl='';segSet($('fFl'),'');fSpecs.clear();fillFilters();render()};
+$('fReset').onclick=()=>{['fText','fArt','fYear','fBrand','fModel','fGen','fBody','fColor','fView'].forEach(i=>$(i).value='');fVer='';segSet($('fVer'),'');fFl='';segSet($('fFl'),'');fSpecs.clear();fillFilters();render()};
 function fillFilters(){
-  const set=(id,vals,label)=>{const el=$(id),cur=el.value,u=uniq(vals);el.innerHTML=`<option value="">${label}</option>`+u.map(v=>`<option ${v===cur?'selected':''}>${esc(v)}</option>`).join('');if(!u.includes(cur))el.value=''};
+  const set=(id,vals,label)=>{const el=$(id),cur=el.value,u=uniq(vals);el.innerHTML=`<option value="">${label}</option>`+u.map(v=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(v)}</option>`).join('');if(!u.includes(cur))el.value=''};
   set('fBrand',cars.map(c=>c.brand),'Alle Marken');
   const m=cars.filter(c=>!$('fBrand').value||c.brand===$('fBrand').value);set('fModel',m.map(c=>c.model),'Alle Modelle');
   const g=m.filter(c=>!$('fModel').value||c.model===$('fModel').value);set('fGen',g.map(c=>c.gen),'Alle Generationen');
-  set('fView',cars.map(c=>c.view),'Alle Ansichten');
+  set('fView',cars.map(c=>c.view),'Alle Ansichten');set('fBody',cars.map(c=>c.body),'Alle Karosserien');set('fColor',cars.map(c=>c.color),'Alle Farben');
   const sm=new Map();for(const t of g.flatMap(c=>c.specs))if(!sm.has(tagKey(t)))sm.set(tagKey(t),t);const specs=uniq([...sm.values()]);[...fSpecs].forEach(s=>{if(!specs.some(x=>tagKey(x)===tagKey(s)))specs.push(s)});
   $('fSpecs').innerHTML=specs.length?specs.map(s=>`<span class="chip click ${fSpecs.has(s)?'on':''}" data-s="${esc(s)}">${esc(s)}</span>`).join(''):'<span class="hint">noch keine</span>'}
 const flName=f=>f==='fl'?'facelift fl lci':f==='vfl'?'vor-facelift vfl':'';
-function matches(c){
-  if($('fBrand').value&&c.brand!==$('fBrand').value)return false;
-  if($('fModel').value&&c.model!==$('fModel').value)return false;
-  if($('fGen').value&&c.gen!==$('fGen').value)return false;
-  if($('fView').value&&c.view!==$('fView').value)return false;
+// Filter einmal pro Durchlauf lesen (nicht für jedes Bild neu): bleibt auch bei tausenden Bildern flott
+function readFilters(){return{brand:$('fBrand').value,model:$('fModel').value,gen:$('fGen').value,view:$('fView').value,body:$('fBody').value,color:$('fColor').value,art:artKey($('fArt').value),year:+$('fYear').value,
+  specs:[...fSpecs].map(tagKey),words:normS($('fText').value).split(' ').filter(Boolean)}}
+function matches(c,f=readFilters()){
+  if(f.brand&&c.brand!==f.brand)return false;
+  if(f.model&&c.model!==f.model)return false;
+  if(f.gen&&c.gen!==f.gen)return false;
+  if(f.view&&c.view!==f.view)return false;
+  if(f.body&&c.body!==f.body)return false;
+  if(f.color&&c.color!==f.color)return false;
+  if(f.art&&!c.artnr.some(a=>artKey(a).includes(f.art)))return false;
   if(fFl&&c.facelift!==fFl)return false;
   if(fVer&&!!c.verified!==(fVer==='1'))return false;
-  if(fSpecs.size){const have=new Set(c.specs.map(tagKey));for(const s of fSpecs)if(!have.has(tagKey(s)))return false}
-  const y=+$('fYear').value;if(y){if(!c.from||y<c.from||y>(c.to||9999))return false}
+  if(f.specs.length){const have=new Set(c.specs.map(tagKey));for(const s of f.specs)if(!have.has(s))return false}
+  const y=f.year;if(y){if(!c.from||y<c.from||y>(c.to||9999))return false}
   // Suche ohne Rücksicht auf Groß-/Kleinschreibung, Bindestriche und Leerzeichen: „r line“, „rline“ und „R-Line“ finden dasselbe
-  const words=normS($('fText').value).split(' ').filter(Boolean);
-  if(words.length){const hay=normS([c.brand,c.model,c.gen,c.body,c.color,c.view,c.notes,c.originalName,...c.specs,flName(c.facelift)].join(' ')),hc=hay.replace(/ /g,'');
+  const words=f.words;
+  if(words.length){const hay=normS([c.brand,c.model,c.gen,c.body,c.color,c.view,c.notes,c.originalName,...c.specs,...c.artnr,flName(c.facelift)].join(' ')),hc=hay.replace(/ /g,'');
     if(!words.every(w=>hay.includes(w)||hc.includes(w))&&!hc.includes(words.join('')))return false}
   return true}
 const SORTS={name:(a,b)=>(a.brand+' '+a.model).localeCompare(b.brand+' '+b.model,'de')||(a.from||0)-(b.from||0),
   yearDesc:(a,b)=>(b.from||0)-(a.from||0),added:(a,b)=>String(b.importedAt).localeCompare(String(a.importedAt))};
 const years=c=>c.from?`${c.from}–${c.to||'heute'}`:'Baujahr ?';
 const flChip=c=>c.facelift==='fl'?'<span class="chip fl">Facelift</span>':c.facelift==='vfl'?'<span class="chip">Vor-Facelift</span>':'<span class="chip warn">FL ?</span>';
-let renderToken=0;
-function render(){const tok=++renderToken;
-  const list=cars.filter(matches).sort(SORTS[$('sort').value]);lastList=list.map(c=>c.id);
-  const active=[$('fText').value.trim(),$('fBrand').value,$('fModel').value,$('fGen').value,$('fView').value,fFl,$('fYear').value,fSpecs.size,fVer].filter(Boolean).length;
-  $('fReset').textContent=active?`Filter zurücksetzen (${active})`:'Filter zurücksetzen';
-  $('count').textContent=`${list.length} von ${cars.length} Bildern`;
-  $('grid').innerHTML=list.length?list.map(c=>`<div class="item${picked.has(c.id)?' sel':''}" data-id="${c.id}"><img class="im" data-img="${c.id}" alt=""><button class="tb pick" data-pick="${c.id}" title="Auswählen (Umschalt = Bereich)"><span></span></button><button class="tb dl" data-dl="${c.id}" title="Herunterladen">⤓</button>
+let renderToken=0,gridOb=null;
+// Kacheln seitenweise: zuerst 120, weitere kommen beim Scrollen dazu (unten angehängt, nichts verschiebt sich)
+const PAGE=120;let curList=[],shown=0;
+const tile=c=>`<div class="item${picked.has(c.id)?' sel':''}" data-id="${c.id}"><img class="im" data-img="${c.id}" alt=""><button class="tb pick" data-pick="${c.id}" title="Auswählen (Umschalt = Bereich)"><span></span></button><button class="tb dl" data-dl="${c.id}" title="Herunterladen">⤓</button>
     <div class="meta"><div class="t">${esc(c.brand)} ${esc(c.model)}</div>
     <div class="s">${[c.gen,years(c),c.body,c.view].filter(Boolean).map(esc).join(' · ')}</div>
-    <div class="chips">${flChip(c)}${c.verified?'<span class="chip ok">✓ geprüft</span>':'<span class="chip warn">ungeprüft</span>'}${c.specs.slice(0,3).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div></div></div>`).join('')
-    :`<div class="empty">${cars.length?'Keine Treffer für diese Filter.':'Noch keine Bilder. Unter „Einsortieren“ hinzufügen.'}</div>`;
-  const ob=new IntersectionObserver(es=>es.forEach(async e=>{if(!e.isIntersecting)return;ob.unobserve(e.target);const c=cars.find(x=>x.id===e.target.dataset.img);
+    <div class="chips">${flChip(c)}${c.verified?'<span class="chip ok">✓ geprüft</span>':'<span class="chip warn">ungeprüft</span>'}${c.specs.slice(0,3).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div></div></div>`;
+function appendPage(){const part=curList.slice(shown,shown+PAGE);if(!part.length)return;shown+=part.length;$('grid').insertAdjacentHTML('beforeend',part.map(tile).join(''));
+  $('grid').querySelectorAll('[data-img]:not([data-o])').forEach(i=>{i.dataset.o='1';gridOb?.observe(i)})}
+const moreOb=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)&&shown<curList.length){appendPage();poke()}},{rootMargin:'1200px'});
+const poke=()=>{moreOb.unobserve($('more'));moreOb.observe($('more'))};
+function render(){const tok=++renderToken;gridOb?.disconnect();
+  const f=readFilters(),list=cars.filter(c=>matches(c,f)).sort(SORTS[$('sort').value]||SORTS.name);lastList=list.map(c=>c.id);
+  const active=[$('fText').value.trim(),f.art,f.brand,f.model,f.gen,f.body,f.color,f.view,fFl,$('fYear').value,fSpecs.size,fVer].filter(Boolean).length;
+  $('fReset').textContent=active?`Filter zurücksetzen (${active})`:'Filter zurücksetzen';
+  $('count').textContent=`${list.length} von ${cars.length} Bildern`;
+  curList=list;shown=0;$('grid').innerHTML=list.length?'':`<div class="empty">${cars.length?'Keine Treffer für diese Filter.':'Noch keine Bilder. Unter „Einsortieren“ hinzufügen.'}</div>`;
+  const ob=gridOb=new IntersectionObserver(es=>es.forEach(async e=>{if(!e.isIntersecting)return;ob.unobserve(e.target);const c=cars.find(x=>x.id===e.target.dataset.img);
     try{const u=await thumbFor(c);if(tok===renderToken||document.contains(e.target))e.target.src=u}catch{e.target.alt='Datei fehlt'}}),{rootMargin:'400px'});
-  document.querySelectorAll('[data-img]').forEach(i=>ob.observe(i));syncPicks()}
+  appendPage();poke();syncPicks();if(cur&&$('dlg').open)dNavState()}
 let lastList=[],lastPick=null;
 $('grid').onclick=e=>{
   const pk=e.target.closest('[data-pick]');if(pk){togglePick(pk.dataset.pick,e.shiftKey);return}
@@ -783,35 +929,66 @@ function syncPicks(){for(const id of [...picked])if(!cars.some(c=>c.id===id))pic
 $('selNone').onclick=()=>{picked.clear();syncPicks()};
 $('selAllVis').onclick=()=>{lastList.forEach(id=>picked.add(id));syncPicks()};
 const dlName=c=>fileName(c,extOf(c.file||c.originalName)).replace(/^\d{4}-\d\d-\d\d_\d{4}_/,'');
-async function downloadOne(c){const a=document.createElement('a');a.href=await urlFor(c);a.download=dlName(c);a.click()}
+// Download-Vorgabe (pro Rechner gemerkt): Original oder verkleinert als JPG/WebP, gilt für Einzelbild und ZIP
+// [Breite, Höhe] ist der Rahmen im Querformat, im Hochformat gedreht (1600×1200 wird 1200×1600). Es wird nie vergrößert.
+const PRESETS={orig:null,j1600:[[1600,1200],'image/jpeg','jpg'],j1200:[[1200,1200],'image/jpeg','jpg'],j800:[[800,800],'image/jpeg','jpg'],w1200:[[1200,1200],'image/webp','webp'],w800:[[800,800],'image/webp','webp']};
+let dlPreset='orig';try{const v=localStorage.getItem('dlPreset');if(v&&v in PRESETS)dlPreset=v}catch{}
+$('dlPreset').value=dlPreset;$('dlPreset').onchange=()=>{dlPreset=$('dlPreset').value;try{localStorage.setItem('dlPreset',dlPreset)}catch{}};
+async function exportFile(c){const blob=await store.blob(c),name=dlName(c),p=PRESETS[dlPreset];if(!p)return{blob,name};
+  try{const bmp=await createImageBitmap(blob),hoch=bmp.height>bmp.width,k=Math.min(1,p[0][hoch?1:0]/bmp.width,p[0][hoch?0:1]/bmp.height);
+    if(k>=1&&blob.type===p[1]){bmp.close();return{blob,name}}  // passt schon: unverändert, ohne Qualitätsverlust
+    const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(bmp.width*k));cv.height=Math.max(1,Math.round(bmp.height*k));
+    const g=cv.getContext('2d');if(p[1]==='image/jpeg'){g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height)}g.imageSmoothingQuality='high';g.drawImage(bmp,0,0,cv.width,cv.height);bmp.close();
+    const out=await new Promise(r=>cv.toBlob(r,p[1],0.88));if(out&&out.type===p[1])return{blob:out,name:name.replace(/\.\w+$/,'.'+p[2])}}
+  catch(e){console.warn('Umrechnen nicht möglich, Original wird geladen',e)}
+  return{blob,name}}
+function saveAs(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),60000)}
+async function downloadOne(c){if(!c)return;try{const f=await exportFile(c);saveAs(f.blob,f.name)}catch(e){console.warn(e);toast('Bilddatei fehlt in der Mediathek',true)}}
 // ZIP ohne Kompression (Bilder sind schon komprimiert) – keine externe Bibliothek nötig
 const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
 function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
 async function makeZip(files){const enc=new TextEncoder(),parts=[],cen=[];let off=0;
+  if(files.length>65535)throw new Error('zu viele Dateien für eine ZIP-Datei');
   for(const f of files){const data=new Uint8Array(await f.blob.arrayBuffer()),name=enc.encode(f.name),crc=crc32(data);
+    if(off+data.length>0xFFFFFF00)throw new Error('größer als 4 GB, bitte in Teilen sichern');
     const l=new DataView(new ArrayBuffer(30));[[0,0x04034b50,4],[4,20,2],[6,0x0800,2],[8,0,2],[10,0,2],[12,0x21,2],[14,crc,4],[18,data.length,4],[22,data.length,4],[26,name.length,2],[28,0,2]].forEach(([o,v,n])=>n===4?l.setUint32(o,v,true):l.setUint16(o,v,true));
     const c=new DataView(new ArrayBuffer(46));[[0,0x02014b50,4],[4,20,2],[6,20,2],[8,0x0800,2],[10,0,2],[12,0,2],[14,0x21,2],[16,crc,4],[20,data.length,4],[24,data.length,4],[28,name.length,2],[30,0,2],[32,0,2],[34,0,2],[36,0,2],[38,0,4],[42,off,4]].forEach(([o,v,n])=>n===4?c.setUint32(o,v,true):c.setUint16(o,v,true));
-    parts.push(l,name,data);cen.push(c,name);off+=30+name.length+data.length}
+    parts.push(l,name,f.blob);cen.push(c,name);off+=30+name.length+data.length}
   const size=cen.reduce((s,x)=>s+x.byteLength,0),e=new DataView(new ArrayBuffer(22));
   e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,size,true);e.setUint32(16,off,true);
   return new Blob([...parts,...cen,e],{type:'application/zip'})}
 $('selZip').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));if(!sel.length)return;
   if(sel.length===1)return downloadOne(sel[0]);
   toast(`ZIP wird erstellt … (${sel.length} Bilder)`);const used=new Map(),files=[];let miss=0;
-  for(const c of sel){let n=dlName(c);const k=n.toLowerCase();if(used.has(k)){used.set(k,used.get(k)+1);n=n.replace(/(\.\w+)$/,`-${used.get(k)}$1`)}else used.set(k,1);
-    try{files.push({name:n,blob:await store.blob(c)})}catch{miss++}}
-  const a=document.createElement('a');a.href=URL.createObjectURL(await makeZip(files));a.download=`Autobilder-${new Date().toISOString().slice(0,10)}-${files.length}.zip`;a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),60000);toast(miss?`ZIP fertig · ${miss} Dateien fehlten`:`✓ ZIP mit ${files.length} Bildern`,!!miss)};
+  for(const c of sel){try{const f=await exportFile(c);let n=f.name;const k=n.toLowerCase();if(used.has(k)){used.set(k,used.get(k)+1);n=n.replace(/(\.\w+)$/,`-${used.get(k)}$1`)}else used.set(k,1);
+      files.push({name:n,blob:f.blob})}catch{miss++}}
+  try{saveAs(await makeZip(files),`Autobilder-${new Date().toISOString().slice(0,10)}-${files.length}.zip`)}catch(e){return toast('ZIP fehlgeschlagen: '+e.message,true)}
+  toast(miss?`ZIP fertig · ${miss} Dateien fehlten`:`✓ ZIP mit ${files.length} Bildern`,!!miss)};
 $('selDel').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));if(!sel.length||!confirm(`${sel.length} Bilder ${store.mode==='dir'?'in den Papierkorb der Mediathek legen':'löschen'}?`))return;
-  saving=true;let ok=0;try{for(const c of sel){try{await store.remove(c);cars=cars.filter(x=>x!==c);ok++}catch(e){console.warn(e)}}}finally{saving=false}
-  picked.clear();refreshLists();fillFilters();render();updateStatus();syncPicks();toast(ok===sel.length?`✓ ${ok} gelöscht`:`${ok} von ${sel.length} gelöscht`,ok!==sel.length)};
+  saving++;let ok=0;const gone=[];try{for(const c of sel){try{await store.remove(c);cars=cars.filter(x=>x!==c);gone.push(c);ok++}catch(e){console.warn(e)}}}finally{saving--}
+  picked.clear();refreshLists();fillFilters();render();updateStatus();syncPicks();toast(ok===sel.length?`✓ ${ok} gelöscht`:`${ok} von ${sel.length} gelöscht`,ok!==sel.length,gone.length?{label:UNDO,fn:()=>undoDelete(gone)}:null)};
+
+// Rückgängig: die letzte Änderung oder das letzte Löschen lässt sich über den Knopf in der Meldung zurücknehmen
+const UNDO='Rückgängig';
+async function undoEdit(list){let ok=0;saving++;
+  try{for(const [c,before] of list){const now=cars.find(x=>x.id===c.id);if(!now)continue;const snap={...now};
+      for(const k in before)if(!k.startsWith('_')&&k!=='file')now[k]=before[k];for(const k in snap)if(!k.startsWith('_')&&!(k in before))delete now[k];
+      try{await store.update(now);ok++}catch(e){console.warn(e);Object.assign(now,snap)}}}
+  finally{saving--}
+  refreshLists();fillFilters();render();toast(ok===list.length?`✓ ${ok===1?'Änderung':ok+' Änderungen'} zurückgenommen`:`${ok} von ${list.length} zurückgenommen`,ok!==list.length)}
+async function undoDelete(list){let ok=0;saving++;
+  try{const tl=store.mode==='dir'?await store.trashList():null;
+    for(const r of list){if(cars.some(c=>c.id===r.id))continue;
+      try{if(tl){const t=tl.find(x=>x.id===r.id);if(!t)continue;cars.push(await store.restore(t))}else{await store.add(r,r._blob);cars.push(r)}ok++}catch(e){console.warn(e)}}}
+  catch(e){console.warn(e)}finally{saving--}
+  refreshLists();fillFilters();render();updateStatus();toast(ok===list.length?`✓ ${ok===1?'Bild':ok+' Bilder'} wiederhergestellt`:`${ok} von ${list.length} wiederhergestellt`,ok!==list.length)}
 
 // Gemeinsam ändern: dieselbe Speicherlogik wie beim Einzelbild (store.update), nur ausgefüllte Felder ändern sich
 fillBulkSimple('','keep');wireSimple('b_body','bodies');wireSimple('b_view','views');
 wireSeg($('b_fl'),()=>bulkYears());wireSeg($('b_ver'));wireCascade('b_',()=>bulkYears());
 function bulkYears(){if(!$('b_gen').value)return;const f=segVal($('b_fl'));const g=genInfo($('b_brand').value,$('b_model').value,$('b_gen').value);if(!g||!g.from)return;
   let from=g.from,to=g.to;if(g.fl&&f==='vfl')to=g.fl;else if(g.fl&&f==='fl')from=g.fl;$('b_from').value=from;$('b_to').value=to??''}
-$('selEdit').onclick=()=>{fillCascade('b_','','','','keep');segSet($('b_fl'),'keep');segSet($('b_ver'),'keep');['b_from','b_to'].forEach(i=>$(i).value='');tagFields.b_addSpecs.set([]);tagFields.b_rmSpecs.set([]);fillBulkSimple('','keep');
+$('selEdit').onclick=()=>{fillCascade('b_','','','','keep');segSet($('b_fl'),'keep');segSet($('b_ver'),'keep');['b_from','b_to'].forEach(i=>$(i).value='');tagFields.b_addSpecs.set([]);tagFields.b_rmSpecs.set([]);$('b_artnr').value='';fillBulkSimple('','keep');
   $('bulkTitle').textContent=picked.size===1?'1 Bild ändern':`${picked.size} Bilder gemeinsam ändern`;$('bulkDlg').showModal()};
 $('bulkClose').onclick=$('bulkX').onclick=()=>$('bulkDlg').close();
 $('bulkSave').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));const ch={};
@@ -821,27 +998,40 @@ $('bulkSave').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));const
   if($('b_body').value.trim())ch.body=$('b_body').value.trim();if($('b_view').value!=='keep')ch.view=$('b_view').value;
   const v=segVal($('b_ver'));if(v!=='keep')ch.verified=v==='1';
   const add=tagFields.b_addSpecs.get(),rm=tagFields.b_rmSpecs.get().map(tagKey);rememberTags(add);
-  if(!Object.keys(ch).length&&!add.length&&!rm.length)return toast('Nichts zum Ändern ausgefüllt',true);
-  saving=true;$('bulkSave').disabled=true;let ok=0,fail=0;
+  const art=parseArt($('b_artnr').value);
+  if(!Object.keys(ch).length&&!add.length&&!rm.length&&!art.length)return toast('Nichts zum Ändern ausgefüllt',true);
+  if(!yearOk(ch.from??null)||!yearOk(ch.to??null))return toast('Baujahr bitte als Jahreszahl zwischen 1900 und 2100 angeben.',true);
+  saving++;$('bulkSave').disabled=true;let ok=0,fail=0;const done=[];
   try{for(const c of sel){const next={...c,...ch};next.specs=[...c.specs.filter(x=>!rm.includes(tagKey(x)))];for(const t of add)if(!next.specs.some(x=>tagKey(x)===tagKey(t)))next.specs.push(t);
+      next.artnr=[...(c.artnr||[])];for(const a of art)if(!next.artnr.some(x=>artKey(x)===artKey(a)))next.artnr.push(a);
       const err=validate(next);if(err){fail++;continue}
       const before={...c};Object.assign(c,next,{editedAt:new Date().toISOString()});
-      try{await store.update(c);ok++}catch(e){Object.assign(c,before);fail++}}}
-  finally{saving=false;$('bulkSave').disabled=false}
-  refreshLists();fillFilters();render();$('bulkDlg').close();toast(fail?`${ok} geändert, ${fail} nicht möglich`:`✓ ${ok} Bilder geändert`,!!fail)};
+      try{await store.update(c);done.push([c,before]);ok++}catch(e){Object.assign(c,before);fail++}}}
+  finally{saving--;$('bulkSave').disabled=false}
+  refreshLists();fillFilters();render();$('bulkDlg').close();toast(fail?`${ok} geändert, ${fail} nicht möglich`:`✓ ${ok} ${ok===1?'Bild':'Bilder'} geändert`,!!fail,done.length?{label:UNDO,fn:()=>undoEdit(done)}:null)};
 
 // ---------- Detail ----------
 let cur=null;
-async function openDlg(id){cur=cars.find(c=>c.id===id);fillForm('e_',cur);editSnap=JSON.stringify(readForm('e_'));$('dImg').removeAttribute('src');$('dlg').showModal();
+let dBusy=false;
+async function openDlg(id){const c=cars.find(c=>c.id===id);if(!c)return;cur=c;fillForm('e_',cur);editSnap=JSON.stringify(readForm('e_'));$('dImg').removeAttribute('src');$('dBox').classList.remove('zoom');if(!$('dlg').open)$('dlg').showModal();dNavState();
   $('dInfo').textContent=`${cur.originalName||''}${cur.width?` · ${cur.width}×${cur.height}`:''}${cur.resizedFrom?` (verkleinert von ${cur.resizedFrom.split(' → ')[0]})`:''} · hinzugefügt ${new Date(cur.importedAt).toLocaleDateString('de-DE')}${cur.editedAt?' · geändert '+new Date(cur.editedAt).toLocaleDateString('de-DE'):''}${cur._rel?' · '+cur._rel+'/'+cur.file:''}`;
-  try{$('dImg').src=await urlFor(cur)}catch{toast('Bilddatei fehlt in der Mediathek',true)}}
-$('dSave').onclick=async()=>{const d=readForm('e_'),err=validate(d);if(err)return toast(err,true);rememberTags(d.specs);
-  const before={...cur};Object.assign(cur,d,{editedAt:new Date().toISOString()});
-  try{await store.update(cur)}catch(e){Object.assign(cur,before);return toast('Speichern fehlgeschlagen: '+e.message,true)}
-  refreshLists();fillFilters();render();$('dlg').close();toast('✓ Geändert')};
-$('dDel').onclick=async()=>{if(!confirm(store.mode==='dir'?'Bild in den Papierkorb der Mediathek legen?':'Bild wirklich löschen?'))return;
-  try{await store.remove(cur)}catch(e){return toast('Löschen fehlgeschlagen: '+e.message,true)}
-  URL.revokeObjectURL(urls.get(cur.id));urls.delete(cur.id);cars=cars.filter(c=>c!==cur);refreshLists();fillFilters();render();updateStatus();$('dlg').close()};
+  const me=cur;try{const u=await urlFor(me);if(cur===me)$('dImg').src=u}catch{if(cur===me)toast('Bilddatei fehlt in der Mediathek',true)}}
+// Blättern durch die aktuellen Treffer (Knöpfe am Bild oder Pfeiltasten, solange kein Eingabefeld aktiv ist); Klick aufs Bild vergrößert
+function dNavState(){const i=cur?lastList.indexOf(cur.id):-1;$('dPrev').disabled=i<=0;$('dNext').disabled=i<0||i>=lastList.length-1;$('dPos').textContent=i<0?'':`${i+1} / ${lastList.length}`}
+function dStep(n){if(dBusy||!cur)return;const i=lastList.indexOf(cur.id),id=i<0?null:lastList[i+n];if(!id||!guardEdit())return;openDlg(id)}
+$('dPrev').onclick=()=>dStep(-1);$('dNext').onclick=()=>dStep(1);
+$('dlg').addEventListener('keydown',e=>{if((e.key!=='ArrowLeft'&&e.key!=='ArrowRight')||e.altKey||e.ctrlKey||e.metaKey||e.target.closest('input,textarea,select'))return;e.preventDefault();dStep(e.key==='ArrowLeft'?-1:1)});
+{const box=$('dBox'),origin=e=>{const r=box.getBoundingClientRect();$('dImg').style.transformOrigin=`${((e.clientX-r.left)/r.width*100).toFixed(1)}% ${((e.clientY-r.top)/r.height*100).toFixed(1)}%`};
+  box.addEventListener('click',e=>{if(e.target.closest('button'))return;origin(e);box.classList.toggle('zoom')});
+  box.addEventListener('mousemove',e=>{if(box.classList.contains('zoom'))origin(e)})}
+$('dSave').onclick=async()=>{if(dBusy||!cur)return;const d=readForm('e_'),err=validate(d);if(err)return toast(err,true);rememberTags(d.specs);
+  const before={...cur};Object.assign(cur,d,{editedAt:new Date().toISOString()});dBusy=true;saving++;
+  try{await store.update(cur)}catch(e){Object.assign(cur,before);return toast('Speichern fehlgeschlagen: '+e.message,true)}finally{dBusy=false;saving--}
+  const c=cur;refreshLists();fillFilters();render();$('dlg').close();toast('✓ Geändert',false,{label:UNDO,fn:()=>undoEdit([[c,before]])})};
+$('dDel').onclick=async()=>{if(dBusy||!cur||!confirm(store.mode==='dir'?'Bild in den Papierkorb der Mediathek legen?':'Bild wirklich löschen?'))return;
+  dBusy=true;saving++;try{await store.remove(cur)}catch(e){return toast('Löschen fehlgeschlagen: '+e.message,true)}finally{dBusy=false;saving--}
+  for(const m of [urls,thumbs]){const k=ukey(cur);if(m.has(k)){URL.revokeObjectURL(m.get(k));m.delete(k)}}const c=cur;cars=cars.filter(x=>x!==c);refreshLists();fillFilters();render();updateStatus();$('dlg').close();
+  toast(store.mode==='dir'?'In den Papierkorb gelegt':'Bild gelöscht',false,{label:UNDO,fn:()=>undoDelete([c])})};
 $('dDl').onclick=()=>downloadOne(cur);
 
 // ---------- Auswahllisten bearbeiten: Marke › Modell › Generation als Spalten, dazu Karosserie und Ansicht ----------
@@ -930,8 +1120,10 @@ $('catDlg').addEventListener('close',()=>cOrigin=null);
 // ---------- Fenster: Klick daneben oder Esc schließt ----------
 let editSnap='';
 function guardEdit(){return JSON.stringify(readForm('e_'))===editSnap||confirm('Änderungen verwerfen?')}
-for(const id of ['dlg','libDlg','catDlg','bulkDlg']){const d=$(id);
-  d.addEventListener('click',e=>{if(e.target!==d)return;const r=d.getBoundingClientRect();
+for(const id of ['dlg','libDlg','catDlg','bulkDlg','trashDlg']){const d=$(id);let downOn=null;
+  // Text markieren und die Maus neben dem Fenster loslassen darf es nicht schließen: der Klick muss auch daneben begonnen haben
+  d.addEventListener('mousedown',e=>{downOn=e.target});
+  d.addEventListener('click',e=>{if(e.target!==d||downOn!==d)return;const r=d.getBoundingClientRect();
     if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)return;
     if(id==='dlg'&&!guardEdit())return;d.close()});
   d.addEventListener('cancel',e=>{if(id==='dlg'&&!guardEdit())e.preventDefault()})}
@@ -944,6 +1136,8 @@ $('tabUp').onclick=()=>{tab(false);syncPicks()};$('tabSearch').onclick=()=>{tab(
 // ---------- Mediathek ----------
 async function openDirLibrary(handle,{create}){
   let root=handle,meta=await readMeta(handle);
+  // „Meine Ablage“ statt des Ordners „Auto Bildarchiv“ gewählt: die Mediathek darin nehmen
+  if(!meta){try{const sub=await handle.getDirectoryHandle('Auto Bildarchiv'),m=await readMeta(sub);if(m){root=sub;meta=m}}catch{}}
   if(!meta){if(!create){if(!confirm(`In „${handle.name}“ ist keine Mediathek. Hier eine neue anlegen?`))return false}
     ({root,meta}=await createLibrary(handle))}
   try{await setting('libHandle',root)}catch(e){console.warn('Ordner kann nicht gemerkt werden',e)}await useStore(DirStore(root,meta));
@@ -956,28 +1150,85 @@ $('libBtn').onclick=async()=>{showVer();
     canDir?'Gerade liegen die Bilder nur in diesem Browser. Lege eine Mediathek in deinem Google-Drive-Ordner an, dann haben Mac und Windows dieselben Bilder.':
     '<b style="color:var(--amber)">Bitte die App in Google Chrome oder Microsoft Edge öffnen.</b> Dieser Browser (z. B. Safari oder Firefox) darf keine Ordner öffnen, deshalb geht hier keine gemeinsame Mediathek. Bilder, die du hier einsortierst, bleiben nur in diesem Browser.';
   ['libNew','libOpen'].forEach(i=>$(i).classList.toggle('hidden',!canDir));$('libReindex').classList.toggle('hidden',store.mode!=='dir');
-  if(store.mode!=='dir')$('libMigrate').classList.add('hidden');$('libDlg').showModal()};
+  if(store.mode!=='dir')$('libMigrate').classList.add('hidden');$('trashSet').classList.toggle('hidden',store.mode!=='dir');$('libDlg').showModal()};
 $('libClose').onclick=()=>$('libDlg').close();
 $('libNew').onclick=()=>pickDir(true);$('libOpen').onclick=()=>pickDir(false);
-$('libReindex').onclick=async()=>{await useStore(store);toast(`Neu eingelesen · ${cars.length} Bilder`)};
-$('libMigrate').onclick=async()=>{const list=await BrowserStore.list();let n=0;
-  for(const r of list){if(cars.some(c=>c.sha256&&c.sha256===r.sha256)||cars.some(c=>c.id===r.id)){await BrowserStore.remove(r);continue}
+$('libReindex').onclick=async()=>{try{await useStore(store,true);toast(`Neu eingelesen · ${cars.length} Bilder`)}catch(e){lost=true;updateStatus(true);toast('Mediathek nicht erreichbar: '+e.message,true)}};
+$('libMigrate').onclick=async()=>{const list=await BrowserStore.list();let n=0;saving++;
+  try{for(const r of list){if(cars.some(c=>c.sha256&&c.sha256===r.sha256)||cars.some(c=>c.id===r.id)){await BrowserStore.remove(r);continue}
     const blob=r._blob;delete r._blob;if(!r.sha256)r.sha256=await sha256(blob);
     try{await store.add(r,blob);cars.push(r);await BrowserStore.remove(r);n++}catch(e){toast(e.message,true)}}
+  }finally{saving--}
   $('libMigrate').classList.add('hidden');refreshLists();fillFilters();render();updateStatus();toast(`✓ ${n} Bilder übernommen`)};
+
+// ---------- Papierkorb ----------
+let trash=[],trashOb=null,tBusy=false;const trashUrls=new Map();
+function renderTrash(){trashOb?.disconnect();const el=$('trashList'),top=el.scrollTop;
+  $('trashInfo').textContent=trash.length?`${trash.length} ${trash.length===1?'Bild':'Bilder'} im Papierkorb`:'Der Papierkorb ist leer.';$('trashEmpty').disabled=!trash.length;
+  el.innerHTML=trash.map((t,i)=>`<div class="trow"><img data-t="${i}" alt=""><div class="n"><div>${esc(t.brand)} ${esc(t.model)}${t.gen?' · '+esc(t.gen):''}</div><div class="hint">${t.deletedAt&&!isNaN(new Date(t.deletedAt))?'gelöscht '+new Date(t.deletedAt).toLocaleDateString('de-DE')+' · ':''}${esc(t.originalName||t.file)}</div></div>`+
+    `<button data-a="re" data-t="${i}">Wiederherstellen</button><button class="btn danger rm" data-a="rm" data-t="${i}" title="Endgültig löschen" aria-label="Endgültig löschen">✕</button></div>`).join('');
+  el.scrollTop=top;
+  trashOb=new IntersectionObserver(es=>es.forEach(async e=>{if(!e.isIntersecting)return;trashOb.unobserve(e.target);const t=trash[+e.target.dataset.t];if(!t)return;
+    try{if(!trashUrls.has(t.id))trashUrls.set(t.id,URL.createObjectURL(await store.trashBlob(t)));e.target.src=trashUrls.get(t.id)}catch{e.target.alt='fehlt'}}),{root:el,rootMargin:'200px'});
+  el.querySelectorAll('img').forEach(i=>trashOb.observe(i))}
+$('trashBtn').onclick=async()=>{$('libDlg').close();trash=[];$('trashList').innerHTML='';$('trashInfo').textContent='Papierkorb wird gelesen …';$('trashEmpty').disabled=true;$('trashDlg').showModal();
+  try{trash=await store.trashList()}catch(e){toast('Papierkorb nicht lesbar: '+e.message,true)}renderTrash()};
+$('trashX').onclick=()=>$('trashDlg').close();
+$('trashDlg').addEventListener('close',()=>{trashOb?.disconnect();trashUrls.forEach(u=>URL.revokeObjectURL(u));trashUrls.clear();$('trashList').innerHTML=''});
+const afterTrash=()=>{renderTrash();refreshLists();fillFilters();render();updateStatus()};
+$('trashList').onclick=async e=>{const b=e.target.closest('button[data-a]');if(!b||tBusy)return;const t=trash[+b.dataset.t];if(!t)return;
+  if(b.dataset.a==='re'){if(cars.some(c=>c.id===t.id))return toast('Dieses Bild ist schon wieder im Archiv',true);
+    tBusy=true;saving++;try{const r=await store.restore(t);cars.push(r);trash=trash.filter(x=>x!==t);toast(`✓ ${r.brand} ${r.model} wiederhergestellt`)}catch(e){toast('Wiederherstellen fehlgeschlagen: '+(e.name==='NotFoundError'?'Bilddatei fehlt im Papierkorb':e.message),true)}finally{tBusy=false;saving--}
+    afterTrash()}
+  else{if(!confirm('Dieses Bild endgültig löschen? Das lässt sich nicht rückgängig machen.'))return;
+    tBusy=true;try{await store.purge(t);trash=trash.filter(x=>x!==t)}catch(e){toast('Löschen fehlgeschlagen: '+e.message,true)}finally{tBusy=false}
+    renderTrash()}};
+$('trashEmpty').onclick=async()=>{if(tBusy||!trash.length||!confirm(`${trash.length} ${trash.length===1?'Bild':'Bilder'} endgültig löschen? Das lässt sich nicht rückgängig machen.`))return;
+  tBusy=true;let fail=0;try{for(const t of [...trash]){try{await store.purge(t);trash=trash.filter(x=>x!==t)}catch(e){console.warn(e);fail++}}}finally{tBusy=false}
+  renderTrash();toast(fail?`${fail} Bilder ließen sich nicht löschen`:'✓ Papierkorb geleert',!!fail)};
 
 // ---------- Backup-Datei (für Browser ohne Ordner-Zugriff) ----------
 const b2d=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
-$('exportBtn').onclick=async()=>{const out=[];let miss=0;for(const c of cars){try{out.push({...JSON.parse(sidecarJSON(c)),image:await b2d(await store.blob(c))})}catch{miss++}}
-  if(miss)toast(`${miss} Bilder fehlen im Ordner und sind nicht im Backup`,true);
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({app:'auto-bildarchiv',schema:SCHEMA,cars:out})],{type:'application/json'}));
-  a.download=`auto-bildarchiv-backup-${new Date().toISOString().slice(0,10)}.json`;a.click()};
+// Backup als ZIP: Bilder/<datei> und daneben <datei>.auto.json, also derselbe Aufbau wie die Mediathek. Die Bilder werden nicht in den Arbeitsspeicher kopiert.
+$('exportBtn').onclick=async()=>{if(!cars.length)return toast('Noch keine Bilder zum Sichern',true);
+  $('exportBtn').disabled=true;toast(`Backup wird erstellt … (${cars.length} Bilder)`);const files=[],used=new Set();let miss=0,n=0;
+  try{for(const c of cars){try{const blob=await store.blob(c);let name=c.file||`${String(c.id).replace(/[^a-z0-9-]/gi,'')}.${MIME_EXT[blob.type]||extOf(c.originalName)}`;
+        if(used.has(name.toLowerCase()))name=String(c.id).replace(/[^a-z0-9-]/gi,'')+'_'+name;used.add(name.toLowerCase());
+        files.push({name:'Bilder/'+name,blob},{name:'Bilder/'+name+SIDE,blob:new Blob([sidecarJSON({...c,file:name})])});n++}catch{miss++}}
+    files.push({name:'backup.auto.json',blob:new Blob([JSON.stringify({app:'auto-bildarchiv',schema:SCHEMA,created:new Date().toISOString(),count:n},null,2)])});
+    saveAs(await makeZip(files),`auto-bildarchiv-backup-${new Date().toISOString().slice(0,10)}.zip`);
+    toast(miss?`Backup mit ${n} Bildern · ${miss} fehlen im Ordner und sind nicht dabei`:`✓ Backup mit ${n} Bildern`,!!miss)}
+  catch(e){toast('Backup fehlgeschlagen: '+e.message,true)}finally{$('exportBtn').disabled=false}};
+// ZIP lesen (nur unkomprimierte Einträge, so wie die App sie schreibt); Bilder werden als Ausschnitt der Datei gelesen
+const EXT_MIME={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',avif:'image/avif',bmp:'image/bmp'};
+async function readZip(file){const tail=new DataView(await file.slice(Math.max(0,file.size-66000)).arrayBuffer());let e=-1;
+  for(let i=tail.byteLength-22;i>=0;i--)if(tail.getUint32(i,true)===0x06054b50){e=i;break}
+  if(e<0)throw new Error('keine gültige ZIP-Datei');
+  const n=tail.getUint16(e+10,true),size=tail.getUint32(e+12,true),off=tail.getUint32(e+16,true);
+  const cd=new DataView(await file.slice(off,off+size).arrayBuffer()),dec=new TextDecoder(),map=new Map();let p=0;
+  for(let i=0;i<n&&p+46<=cd.byteLength;i++){if(cd.getUint32(p,true)!==0x02014b50)break;const nl=cd.getUint16(p+28,true);
+    map.set(dec.decode(new Uint8Array(cd.buffer,p+46,nl)),{method:cd.getUint16(p+10,true),size:cd.getUint32(p+20,true),lo:cd.getUint32(p+42,true)});p+=46+nl+cd.getUint16(p+30,true)+cd.getUint16(p+32,true)}
+  return{names:[...map.keys()],async blob(name,type=''){const x=map.get(name);if(!x)return null;if(x.method!==0)throw new Error('komprimierte ZIP-Datei, nicht von dieser App');
+    const h=new DataView(await file.slice(x.lo,x.lo+30).arrayBuffer());if(h.byteLength<30||h.getUint32(0,true)!==0x04034b50)throw new Error('ZIP beschädigt');
+    const st=x.lo+30+h.getUint16(26,true)+h.getUint16(28,true);return file.slice(st,st+x.size,type)}}}
 $('importBtn').onclick=()=>$('importFile').click();
-$('importFile').onchange=async()=>{const f=$('importFile').files[0];if(!f)return;try{const data=JSON.parse(await f.text());let n=0;
-  for(const c of data.cars||[]){const{image,...rest}=c;const blob=await (await fetch(image)).blob();const r=normalize(rest);if(!r.sha256)r.sha256=await sha256(blob);
-    if(cars.some(x=>x.id===r.id||x.sha256===r.sha256))continue;r.importedAt=r.importedAt||r.added||new Date().toISOString();r.originalName=r.originalName||r.fileName||'bild.jpg';
-    await store.add(r,blob);cars.push(r);n++}
-  refreshLists();fillFilters();render();updateStatus();toast(`✓ ${n} Bilder importiert`)}catch(e){toast('Backup unlesbar: '+e.message,true)}$('importFile').value=''};
+// Jedes Bild einzeln: ein beschädigter Eintrag bricht den Import der übrigen nicht ab. ZIP (neu) und .json (bis Version 1.6) werden gelesen.
+$('importFile').onchange=async()=>{const f=$('importFile').files[0];if(!f)return;let n=0,skip=0,fail=0;saving++;
+  const one=async(rest,blob)=>{const r=normalize(rest);r.id=String(r.id||uid());if(!r.sha256)r.sha256=await sha256(blob);
+    if(cars.some(x=>x.id===r.id||x.sha256===r.sha256)){skip++;return}r.importedAt=r.importedAt||r.added||new Date().toISOString();r.originalName=r.originalName||r.fileName||'bild.jpg';
+    await store.add(r,blob);cars.push(r);n++};
+  try{const sigB=new Uint8Array(await f.slice(0,2).arrayBuffer());
+    if(sigB[0]===0x50&&sigB[1]===0x4B){const z=await readZip(f),sides=z.names.filter(x=>x.endsWith(SIDE)&&x!=='backup.auto.json');
+      if(!sides.length)throw new Error('keine Backup-Datei des Auto-Bildarchivs');toast(`Backup wird geladen … (${sides.length} Bilder)`);
+      for(const sn of sides){try{const img=sn.slice(0,-SIDE.length),rest=JSON.parse(await (await z.blob(sn)).text()),blob=await z.blob(img,EXT_MIME[extOf(img)]||'');
+          if(!blob||!blob.size)throw new Error('Bild fehlt');await one(rest,blob)}catch(e){console.warn('Import',sn,e);fail++}}}
+    else{const data=JSON.parse(await f.text());if(!data||!Array.isArray(data.cars))throw new Error('keine Backup-Datei des Auto-Bildarchivs');
+      toast(`Backup wird geladen … (${data.cars.length} Bilder)`);
+      for(const c of data.cars){try{const{image,...rest}=c;if(typeof image!=='string'||!image.startsWith('data:image/'))throw new Error('Bild fehlt');
+          await one(rest,await (await fetch(image)).blob())}catch(e){console.warn('Import',e);fail++}}}
+    toast(fail?`${n} importiert, ${fail} nicht lesbar`:`✓ ${n} Bilder importiert`+(skip?` · ${skip} waren schon da`:''),!!fail)}
+  catch(e){toast('Backup unlesbar: '+e.message,true)}
+  finally{saving--;$('importFile').value='';refreshLists();fillFilters();render();updateStatus()}};
 
 // ---------- Als App installieren (Chrome/Edge, Mac und Windows) ----------
 let installEvt=null;
@@ -986,7 +1237,7 @@ $('installBtn').onclick=async()=>{if(!installEvt)return;installEvt.prompt();awai
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 // ---------- Version und Updates (wie archivn: prüft beim Start und alle 30 Minuten, installiert erst auf Knopfdruck) ----------
-const APP_VERSION='1.5.1',APP_BUILD=8;
+const APP_VERSION='1.7.1',APP_BUILD=11;
 let updLatest=null,updLaterBuild=+(()=>{try{return localStorage.getItem('updLater')||0}catch{return 0}})();
 function showVer(){$('verInfo').textContent=`Installiert: Version ${APP_VERSION} · Build ${APP_BUILD}`+(matchMedia('(display-mode: standalone)').matches?' · als App':' · im Browser')}
 async function checkUpdate(manual){if(manual)$('updState').textContent='Suche nach Updates …';
@@ -998,14 +1249,20 @@ async function checkUpdate(manual){if(manual)$('updState').textContent='Suche na
   catch(e){$('updState').textContent=manual?'Keine Verbindung zum Update-Server. Später nochmal versuchen.':''}}
 $('updCheck').onclick=()=>checkUpdate(true);
 $('updLater').onclick=()=>{$('updBox').classList.add('hidden');if(updLatest){updLaterBuild=updLatest.build;try{localStorage.setItem('updLater',updLatest.build)}catch{}}};
-$('updGo').onclick=async()=>{$('updGo').disabled=true;$('updGo').textContent='Wird geladen …';
-  try{const reg=await navigator.serviceWorker?.getRegistration();if(reg)await reg.update().catch(()=>{});
-    const keys=await caches?.keys?.()||[];await Promise.all(keys.map(k=>caches.delete(k)))}catch{}
+$('updGo').onclick=async()=>{if(saving||writing)return toast('Es wird gerade gespeichert. Bitte kurz warten und nochmal klicken.',true);
+  $('updGo').disabled=true;$('updGo').textContent='Wird geladen …';
+  // Erst prüfen, ob der Server erreichbar ist. Der Offline-Speicher bleibt erhalten, damit die App ohne Internet weiter startet.
+  try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status)}
+  catch{$('updGo').disabled=false;$('updGo').textContent='Aktualisieren';return toast('Keine Verbindung. Das Update klappt, sobald du wieder online bist.',true)}
+  try{const reg=await navigator.serviceWorker?.getRegistration();if(reg)await reg.update().catch(()=>{})}catch{}
   try{localStorage.setItem('updTarget',updLatest?.build||0)}catch{}
   location.reload()};
 // nach dem Neuladen: hat das Update geklappt?
 try{const t=+localStorage.getItem('updTarget');if(t){localStorage.removeItem('updTarget');setTimeout(()=>t<=APP_BUILD?toast(`✓ Aktualisiert auf Version ${APP_VERSION}`):toast('Das Update wird gerade noch verteilt. In 1–2 Minuten nochmal „Aktualisieren“.',true),800)}}catch{}
 showVer();setTimeout(()=>checkUpdate(false),3000);setInterval(()=>checkUpdate(false),30*60*1000);
+
+// Fenster nicht mitten im Speichern schließen
+window.addEventListener('beforeunload',e=>{if(saving||writing){e.preventDefault();e.returnValue=''}});
 
 // ---------- Start ----------
 (async()=>{
@@ -1019,7 +1276,7 @@ showVer();setTimeout(()=>checkUpdate(false),3000);setInterval(()=>checkUpdate(fa
     if(p==='granted'){try{const meta=await readMeta(h);if(meta){await useStore(DirStore(h,meta));return}}catch{}}
     await useStore(BrowserStore);
     const b=$('banner');b.innerHTML=`<p>Mediathek <b>${esc(h.name)}</b> ist nicht verbunden. Bis dahin wird nur im Browser gespeichert.</p><button class="btn pri" id="reconnect">Verbinden</button><button onclick="this.parentNode.classList.add('hidden')">Später</button>`;b.classList.remove('hidden');
-    $('reconnect').onclick=async()=>{try{if(await h.requestPermission({mode:'readwrite'})==='granted'&&await readMeta(h))await openDirLibrary(h,{create:false});else toast('Ordner nicht erreichbar. Unter „Mediathek“ neu wählen.',true)}catch(e){toast(e.message,true)}};
+    $('reconnect').onclick=async()=>{try{if(await h.requestPermission({mode:'readwrite'})==='granted'&&await readMeta(h))await openDirLibrary(h,{create:false});else toast('Ordner nicht erreichbar. Läuft Google Drive? Sonst unter „Einstellungen“ neu wählen.',true)}catch(e){toast(e.message,true)}};
     return}
   await useStore(BrowserStore);
   if(crashed&&canDir){const b=$('banner');b.innerHTML=`<p>Bitte die Mediathek einmal neu öffnen, der Ordner-Zugriff wurde zurückgesetzt.</p><button class="btn pri" id="bOpen">Mediathek öffnen</button><button onclick="this.parentNode.classList.add('hidden')">Später</button>`;b.classList.remove('hidden');$('bOpen').onclick=()=>pickDir(false);return}
