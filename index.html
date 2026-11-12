@@ -187,6 +187,10 @@ dialog::backdrop{background:#000c}
 .banner p{margin:0;flex:1;min-width:240px}
 #toast{position:fixed;inset:auto auto 110px 50%;margin:0;border:0;overflow:hidden;width:max-content;max-width:calc(100vw - 32px);color:var(--text);font:inherit;transform:translateX(-50%);background:var(--hi);padding:10px 18px;border-radius:var(--r);box-shadow:0 6px 24px #0008;opacity:0;transition:opacity .15s;pointer-events:none;z-index:50}
 #toast.show{opacity:1}#toast.bad{background:var(--err)}
+#toast.act{pointer-events:auto;padding:6px 6px 6px 18px}
+#toast.act:popover-open{display:flex;align-items:center;gap:14px}
+#toast button{height:32px;padding:0 14px;font-size:16px;background:var(--acc);color:#fff}
+#toast.bad button{background:#0006}
 </style>
 </head>
 <body>
@@ -238,7 +242,7 @@ dialog::backdrop{background:#000c}
     </div>
     <div>
       <div class="topbar"><span class="lbl num" style="margin:0;min-width:180px" id="count"></span>
-        <div class="row"><select id="dlPreset" title="Größe und Format beim Herunterladen (einzeln und als ZIP)" aria-label="Größe und Format beim Herunterladen"><option value="orig">Download: Original</option><option value="j1200">Download: 1200 px · JPG</option><option value="j800">Download: 800 px · JPG</option><option value="w1200">Download: 1200 px · WebP</option><option value="w800">Download: 800 px · WebP</option></select>
+        <div class="row"><select id="dlPreset" title="Größe und Format beim Herunterladen (einzeln und als ZIP)" aria-label="Größe und Format beim Herunterladen"><option value="orig">Download: Original</option><option value="j1600">Download: 1600×1200 · JPG</option><option value="j1200">Download: 1200 px · JPG</option><option value="j800">Download: 800 px · JPG</option><option value="w1200">Download: 1200 px · WebP</option><option value="w800">Download: 800 px · WebP</option></select>
         <select id="sort"><option value="name">Marke · Modell · Baujahr</option><option value="yearDesc">Baujahr, neueste zuerst</option><option value="added">Zuletzt hinzugefügt</option></select></div></div>
       <div class="grid" id="grid"></div><div id="more"></div>
     </div>
@@ -372,8 +376,11 @@ const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math
 const SCHEMA=1, SIDE='.auto.json';
 const VIEWS=['','Front','Front schräg','Seite','Heck','Heck schräg','Innenraum','Cockpit','Felge/Detail','Motor','Sonstiges'];
 // Meldung unten in der Mitte. Als Popover liegt sie auch über offenen Fenstern (sonst wäre sie hinter deren Abdunklung kaum zu sehen).
-function toast(msg,bad){const t=$('toast');t.textContent=msg;try{if(t.matches(':popover-open'))t.hidePopover();t.showPopover()}catch{}
-  t.className='show'+(bad?' bad':'');clearTimeout(t._t);t._t=setTimeout(()=>{t.className='';try{t.hidePopover()}catch{}},bad?6000:3000)}
+// Mit act={label,fn} bekommt die Meldung einen Knopf (z. B. „Rückgängig“) und bleibt länger stehen.
+function toast(msg,bad,act){const t=$('toast'),hide=()=>{t.className='';try{t.hidePopover()}catch{}};t.textContent=msg;
+  if(act){const b=document.createElement('button');b.type='button';b.textContent=act.label;b.onclick=()=>{clearTimeout(t._t);hide();act.fn()};t.append(b)}
+  try{if(t.matches(':popover-open'))t.hidePopover();t.showPopover()}catch{}
+  t.className='show'+(bad?' bad':'')+(act?' act':'');clearTimeout(t._t);t._t=setTimeout(hide,act?12000:bad?6000:3000)}
 
 // Laufende Schreibvorgänge: der Abgleich mit dem Ordner wartet darauf und verwirft Ergebnisse, die währenddessen veraltet sind
 let writes=0,writing=0;
@@ -923,11 +930,13 @@ $('selNone').onclick=()=>{picked.clear();syncPicks()};
 $('selAllVis').onclick=()=>{lastList.forEach(id=>picked.add(id));syncPicks()};
 const dlName=c=>fileName(c,extOf(c.file||c.originalName)).replace(/^\d{4}-\d\d-\d\d_\d{4}_/,'');
 // Download-Vorgabe (pro Rechner gemerkt): Original oder verkleinert als JPG/WebP, gilt für Einzelbild und ZIP
-const PRESETS={orig:null,j1200:[1200,'image/jpeg','jpg'],j800:[800,'image/jpeg','jpg'],w1200:[1200,'image/webp','webp'],w800:[800,'image/webp','webp']};
+// [Breite, Höhe] ist der Rahmen im Querformat, im Hochformat gedreht (1600×1200 wird 1200×1600). Es wird nie vergrößert.
+const PRESETS={orig:null,j1600:[[1600,1200],'image/jpeg','jpg'],j1200:[[1200,1200],'image/jpeg','jpg'],j800:[[800,800],'image/jpeg','jpg'],w1200:[[1200,1200],'image/webp','webp'],w800:[[800,800],'image/webp','webp']};
 let dlPreset='orig';try{const v=localStorage.getItem('dlPreset');if(v&&v in PRESETS)dlPreset=v}catch{}
 $('dlPreset').value=dlPreset;$('dlPreset').onchange=()=>{dlPreset=$('dlPreset').value;try{localStorage.setItem('dlPreset',dlPreset)}catch{}};
 async function exportFile(c){const blob=await store.blob(c),name=dlName(c),p=PRESETS[dlPreset];if(!p)return{blob,name};
-  try{const bmp=await createImageBitmap(blob),k=Math.min(1,p[0]/Math.max(bmp.width,bmp.height));
+  try{const bmp=await createImageBitmap(blob),hoch=bmp.height>bmp.width,k=Math.min(1,p[0][hoch?1:0]/bmp.width,p[0][hoch?0:1]/bmp.height);
+    if(k>=1&&blob.type===p[1]){bmp.close();return{blob,name}}  // passt schon: unverändert, ohne Qualitätsverlust
     const cv=document.createElement('canvas');cv.width=Math.max(1,Math.round(bmp.width*k));cv.height=Math.max(1,Math.round(bmp.height*k));
     const g=cv.getContext('2d');if(p[1]==='image/jpeg'){g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height)}g.imageSmoothingQuality='high';g.drawImage(bmp,0,0,cv.width,cv.height);bmp.close();
     const out=await new Promise(r=>cv.toBlob(r,p[1],0.88));if(out&&out.type===p[1])return{blob:out,name:name.replace(/\.\w+$/,'.'+p[2])}}
@@ -956,8 +965,23 @@ $('selZip').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));if(!sel
   try{saveAs(await makeZip(files),`Autobilder-${new Date().toISOString().slice(0,10)}-${files.length}.zip`)}catch(e){return toast('ZIP fehlgeschlagen: '+e.message,true)}
   toast(miss?`ZIP fertig · ${miss} Dateien fehlten`:`✓ ZIP mit ${files.length} Bildern`,!!miss)};
 $('selDel').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));if(!sel.length||!confirm(`${sel.length} Bilder ${store.mode==='dir'?'in den Papierkorb der Mediathek legen':'löschen'}?`))return;
-  saving++;let ok=0;try{for(const c of sel){try{await store.remove(c);cars=cars.filter(x=>x!==c);ok++}catch(e){console.warn(e)}}}finally{saving--}
-  picked.clear();refreshLists();fillFilters();render();updateStatus();syncPicks();toast(ok===sel.length?`✓ ${ok} gelöscht`:`${ok} von ${sel.length} gelöscht`,ok!==sel.length)};
+  saving++;let ok=0;const gone=[];try{for(const c of sel){try{await store.remove(c);cars=cars.filter(x=>x!==c);gone.push(c);ok++}catch(e){console.warn(e)}}}finally{saving--}
+  picked.clear();refreshLists();fillFilters();render();updateStatus();syncPicks();toast(ok===sel.length?`✓ ${ok} gelöscht`:`${ok} von ${sel.length} gelöscht`,ok!==sel.length,gone.length?{label:UNDO,fn:()=>undoDelete(gone)}:null)};
+
+// Rückgängig: die letzte Änderung oder das letzte Löschen lässt sich über den Knopf in der Meldung zurücknehmen
+const UNDO='Rückgängig';
+async function undoEdit(list){let ok=0;saving++;
+  try{for(const [c,before] of list){const now=cars.find(x=>x.id===c.id);if(!now)continue;const snap={...now};
+      for(const k in before)if(!k.startsWith('_')&&k!=='file')now[k]=before[k];for(const k in snap)if(!k.startsWith('_')&&!(k in before))delete now[k];
+      try{await store.update(now);ok++}catch(e){console.warn(e);Object.assign(now,snap)}}}
+  finally{saving--}
+  refreshLists();fillFilters();render();toast(ok===list.length?`✓ ${ok===1?'Änderung':ok+' Änderungen'} zurückgenommen`:`${ok} von ${list.length} zurückgenommen`,ok!==list.length)}
+async function undoDelete(list){let ok=0;saving++;
+  try{const tl=store.mode==='dir'?await store.trashList():null;
+    for(const r of list){if(cars.some(c=>c.id===r.id))continue;
+      try{if(tl){const t=tl.find(x=>x.id===r.id);if(!t)continue;cars.push(await store.restore(t))}else{await store.add(r,r._blob);cars.push(r)}ok++}catch(e){console.warn(e)}}}
+  catch(e){console.warn(e)}finally{saving--}
+  refreshLists();fillFilters();render();updateStatus();toast(ok===list.length?`✓ ${ok===1?'Bild':ok+' Bilder'} wiederhergestellt`:`${ok} von ${list.length} wiederhergestellt`,ok!==list.length)}
 
 // Gemeinsam ändern: dieselbe Speicherlogik wie beim Einzelbild (store.update), nur ausgefüllte Felder ändern sich
 fillBulkSimple('','keep');wireSimple('b_body','bodies');wireSimple('b_view','views');
@@ -977,14 +1001,14 @@ $('bulkSave').onclick=async()=>{const sel=cars.filter(c=>picked.has(c.id));const
   const art=parseArt($('b_artnr').value);
   if(!Object.keys(ch).length&&!add.length&&!rm.length&&!art.length)return toast('Nichts zum Ändern ausgefüllt',true);
   if(!yearOk(ch.from??null)||!yearOk(ch.to??null))return toast('Baujahr bitte als Jahreszahl zwischen 1900 und 2100 angeben.',true);
-  saving++;$('bulkSave').disabled=true;let ok=0,fail=0;
+  saving++;$('bulkSave').disabled=true;let ok=0,fail=0;const done=[];
   try{for(const c of sel){const next={...c,...ch};next.specs=[...c.specs.filter(x=>!rm.includes(tagKey(x)))];for(const t of add)if(!next.specs.some(x=>tagKey(x)===tagKey(t)))next.specs.push(t);
       next.artnr=[...(c.artnr||[])];for(const a of art)if(!next.artnr.some(x=>artKey(x)===artKey(a)))next.artnr.push(a);
       const err=validate(next);if(err){fail++;continue}
       const before={...c};Object.assign(c,next,{editedAt:new Date().toISOString()});
-      try{await store.update(c);ok++}catch(e){Object.assign(c,before);fail++}}}
+      try{await store.update(c);done.push([c,before]);ok++}catch(e){Object.assign(c,before);fail++}}}
   finally{saving--;$('bulkSave').disabled=false}
-  refreshLists();fillFilters();render();$('bulkDlg').close();toast(fail?`${ok} geändert, ${fail} nicht möglich`:`✓ ${ok} Bilder geändert`,!!fail)};
+  refreshLists();fillFilters();render();$('bulkDlg').close();toast(fail?`${ok} geändert, ${fail} nicht möglich`:`✓ ${ok} ${ok===1?'Bild':'Bilder'} geändert`,!!fail,done.length?{label:UNDO,fn:()=>undoEdit(done)}:null)};
 
 // ---------- Detail ----------
 let cur=null;
@@ -1003,10 +1027,11 @@ $('dlg').addEventListener('keydown',e=>{if((e.key!=='ArrowLeft'&&e.key!=='ArrowR
 $('dSave').onclick=async()=>{if(dBusy||!cur)return;const d=readForm('e_'),err=validate(d);if(err)return toast(err,true);rememberTags(d.specs);
   const before={...cur};Object.assign(cur,d,{editedAt:new Date().toISOString()});dBusy=true;saving++;
   try{await store.update(cur)}catch(e){Object.assign(cur,before);return toast('Speichern fehlgeschlagen: '+e.message,true)}finally{dBusy=false;saving--}
-  refreshLists();fillFilters();render();$('dlg').close();toast('✓ Geändert')};
+  const c=cur;refreshLists();fillFilters();render();$('dlg').close();toast('✓ Geändert',false,{label:UNDO,fn:()=>undoEdit([[c,before]])})};
 $('dDel').onclick=async()=>{if(dBusy||!cur||!confirm(store.mode==='dir'?'Bild in den Papierkorb der Mediathek legen?':'Bild wirklich löschen?'))return;
   dBusy=true;saving++;try{await store.remove(cur)}catch(e){return toast('Löschen fehlgeschlagen: '+e.message,true)}finally{dBusy=false;saving--}
-  for(const m of [urls,thumbs]){const k=ukey(cur);if(m.has(k)){URL.revokeObjectURL(m.get(k));m.delete(k)}}cars=cars.filter(c=>c!==cur);refreshLists();fillFilters();render();updateStatus();$('dlg').close()};
+  for(const m of [urls,thumbs]){const k=ukey(cur);if(m.has(k)){URL.revokeObjectURL(m.get(k));m.delete(k)}}const c=cur;cars=cars.filter(x=>x!==c);refreshLists();fillFilters();render();updateStatus();$('dlg').close();
+  toast(store.mode==='dir'?'In den Papierkorb gelegt':'Bild gelöscht',false,{label:UNDO,fn:()=>undoDelete([c])})};
 $('dDl').onclick=()=>downloadOne(cur);
 
 // ---------- Auswahllisten bearbeiten: Marke › Modell › Generation als Spalten, dazu Karosserie und Ansicht ----------
@@ -1212,7 +1237,7 @@ $('installBtn').onclick=async()=>{if(!installEvt)return;installEvt.prompt();awai
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 // ---------- Version und Updates (wie archivn: prüft beim Start und alle 30 Minuten, installiert erst auf Knopfdruck) ----------
-const APP_VERSION='1.7.0',APP_BUILD=10;
+const APP_VERSION='1.7.1',APP_BUILD=11;
 let updLatest=null,updLaterBuild=+(()=>{try{return localStorage.getItem('updLater')||0}catch{return 0}})();
 function showVer(){$('verInfo').textContent=`Installiert: Version ${APP_VERSION} · Build ${APP_BUILD}`+(matchMedia('(display-mode: standalone)').matches?' · als App':' · im Browser')}
 async function checkUpdate(manual){if(manual)$('updState').textContent='Suche nach Updates …';

@@ -1,15 +1,15 @@
 {
-  "version": "1.7.0",
-  "build": 10,
+  "version": "1.7.1",
+  "build": 11,
   "date": "2026-11-12",
   "notes": [
+    "„Rückgängig“ in der Meldung nach Löschen, Bearbeiten und „Gemeinsam ändern“",
+    "Download-Vorgabe: Original ist Standard, neu dazu 1600×1200",
     "Papierkorb in den Einstellungen: gelöschte Bilder ansehen, wiederherstellen oder endgültig löschen",
     "Im Bildfenster blättern (Pfeile am Bild oder Pfeiltasten), Klick aufs Bild vergrößert",
     "Neue Filter: Karosserie, Farbe und Artikelnummer",
     "Artikelnummern am Bild, einzeln oder für viele Bilder gemeinsam",
     "Download-Vorgabe neben der Sortierung: Original oder 1200/800 px als JPG oder WebP",
-    "Standortdaten (GPS) werden beim Einsortieren entfernt",
-    "Backup als ZIP-Datei, auch für große Archive",
-    "Sicherer und stabiler: kein Überschreiben bei vielen Bildern auf einmal, Enter im Tag-Feld speichert nicht mehr, Drive-Aussetzer leeren das Archiv nicht"
+    "Standortdaten (GPS) werden beim Einsortieren entfernt"
   ]
 }
