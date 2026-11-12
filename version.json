@@ -1,15 +1,15 @@
 {
-  "version": "1.6.0",
-  "build": 9,
+  "version": "1.7.0",
+  "build": 10,
   "date": "2026-11-12",
   "notes": [
-    "Sicherer: viele Bilder desselben Autos auf einmal können sich nicht mehr gegenseitig überschreiben",
-    "Enter im Tag-Feld wählt nur noch den Tag und speichert nicht mehr versehentlich alle Bilder",
-    "Ist Google Drive kurz nicht erreichbar, bleiben alle Bilder sichtbar und der Status meldet es",
-    "Eigene Änderungen springen beim Abgleich mit dem anderen Rechner nicht mehr kurz zurück",
-    "Unlesbare Bilder (z. B. HEIC) werden markiert und halten die Warteschlange nicht mehr auf",
-    "Dateien neben das Feld fallen lassen öffnet sie nicht mehr im Fenster, sondern sortiert sie ein",
-    "Fenster schließen sich nicht mehr, wenn man beim Markieren von Text daneben loslässt",
-    "„Aktualisieren“ ohne Internet lässt die App unangetastet"
+    "Papierkorb in den Einstellungen: gelöschte Bilder ansehen, wiederherstellen oder endgültig löschen",
+    "Im Bildfenster blättern (Pfeile am Bild oder Pfeiltasten), Klick aufs Bild vergrößert",
+    "Neue Filter: Karosserie, Farbe und Artikelnummer",
+    "Artikelnummern am Bild, einzeln oder für viele Bilder gemeinsam",
+    "Download-Vorgabe neben der Sortierung: Original oder 1200/800 px als JPG oder WebP",
+    "Standortdaten (GPS) werden beim Einsortieren entfernt",
+    "Backup als ZIP-Datei, auch für große Archive",
+    "Sicherer und stabiler: kein Überschreiben bei vielen Bildern auf einmal, Enter im Tag-Feld speichert nicht mehr, Drive-Aussetzer leeren das Archiv nicht"
   ]
 }
