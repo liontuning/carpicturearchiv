@@ -9,7 +9,8 @@ Eine Datei: `index.html` (HTML, CSS, JS, Schrift eingebettet). Läuft über GitH
   Feste Größen für Knöpfe, Kacheln, Statuszeile und Bildflächen; wechselnde Texte bekommen feste Breite; Hinweise und Banner
   schieben nichts weg (fixiert oder Platz reserviert); Schrift ist eingebettet, die Seite erscheint erst, wenn sie geladen ist.
 - Vor jedem Push prüfen: Cumulative Layout Shift = 0 (PerformanceObserver `layout-shift`) beim Laden und bei allen Bedienschritten.
-- Gestaltung wie Loomn: dunkel, Barlow Condensed, Signalorange heißt aktiv, eine Höhe (40 px) für alle Bedienelemente.
+- Gestaltung: dunkel, Barlow Condensed, Liontuning-Gelb (`#f4e81c`, aus dem Logo) heißt aktiv, darauf immer dunkle Schrift (`--on`). Kein Orange. Hinweise sind blau (`--note`), Fehler rot. Eine Höhe (40 px) für alle Bedienelemente.
+- Einsortieren: Ablagefeld und Warteschlange (`.upleft`) kleben unter der Kopfzeile (`--hdr` wird per Skript gesetzt); schmal klebt nur das Ablagefeld. Das ganze Fenster nimmt Dateien an (`#dragOv`).
 
 ## Daten
 

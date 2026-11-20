@@ -1,15 +1,15 @@
 {
-  "version": "1.7.1",
-  "build": 11,
-  "date": "2026-11-12",
+  "version": "1.8.0",
+  "build": 12,
+  "date": "2026-11-20",
   "notes": [
-    "„Rückgängig“ in der Meldung nach Löschen, Bearbeiten und „Gemeinsam ändern“",
-    "Download-Vorgabe: Original ist Standard, neu dazu 1600×1200",
-    "Papierkorb in den Einstellungen: gelöschte Bilder ansehen, wiederherstellen oder endgültig löschen",
-    "Im Bildfenster blättern (Pfeile am Bild oder Pfeiltasten), Klick aufs Bild vergrößert",
-    "Neue Filter: Karosserie, Farbe und Artikelnummer",
-    "Artikelnummern am Bild, einzeln oder für viele Bilder gemeinsam",
-    "Download-Vorgabe neben der Sortierung: Original oder 1200/800 px als JPG oder WebP",
-    "Standortdaten (GPS) werden beim Einsortieren entfernt"
+    "Einsortieren: Ablagefeld und Warteschlange bleiben beim Scrollen sichtbar",
+    "Bilder lassen sich überall ins Fenster ziehen, auch im Reiter „Suchen“",
+    "Neue Farbe: Liontuning-Gelb statt Orange",
+    "Bild ansehen: das Bild bleibt stehen, während man die Angaben durchgeht",
+    "Nach Speichern oder Löschen springt die Trefferliste nicht mehr nach oben",
+    "Mausrad verstellt keine Jahreszahlen mehr",
+    "Behoben: Bild fehlte kurz nach dem Ändern von Marke oder Modell",
+    "Behoben: derselbe Tag konnte im Filter doppelt aktiv sein"
   ]
 }
