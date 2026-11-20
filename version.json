@@ -1,14 +1,15 @@
 {
-  "version": "1.5.1",
-  "build": 8,
-  "date": "2026-11-09",
+  "version": "1.7.1",
+  "build": 11,
+  "date": "2026-11-12",
   "notes": [
-    "✕ oben rechts in jedem Fenster zum Schließen (bleibt beim Scrollen sichtbar)",
-    "Auswahllisten: Marke, Modell und Generation als Spalten, mit Hinzufügen, Entfernen und eigener Reihenfolge",
-    "Karosserie, Ansicht und Tags als bearbeitbare Listen",
-    "Tags wie R-Line oder M-Paket mit Vorschlägen und „Hinzufügen“",
-    "Suche ignoriert Groß-/Kleinschreibung und Bindestriche („r line“ findet „R-Line“)",
-    "Filter Alle / Geprüft / Ungeprüft",
-    "Schmales Fenster: Kacheln überdecken die Filter nicht mehr"
+    "„Rückgängig“ in der Meldung nach Löschen, Bearbeiten und „Gemeinsam ändern“",
+    "Download-Vorgabe: Original ist Standard, neu dazu 1600×1200",
+    "Papierkorb in den Einstellungen: gelöschte Bilder ansehen, wiederherstellen oder endgültig löschen",
+    "Im Bildfenster blättern (Pfeile am Bild oder Pfeiltasten), Klick aufs Bild vergrößert",
+    "Neue Filter: Karosserie, Farbe und Artikelnummer",
+    "Artikelnummern am Bild, einzeln oder für viele Bilder gemeinsam",
+    "Download-Vorgabe neben der Sortierung: Original oder 1200/800 px als JPG oder WebP",
+    "Standortdaten (GPS) werden beim Einsortieren entfernt"
   ]
 }
