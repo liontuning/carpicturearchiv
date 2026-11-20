@@ -12,7 +12,7 @@ await p.click('#updCheck');await p.waitForTimeout(400);assert((await p.textConte
 remote={version:'9.0.0',build:B0+1,notes:['Neue Funktion A','Fehler B behoben']};
 await p.click('#updCheck');await p.waitForTimeout(400);assert(await p.isVisible('#updBox'),'Neue Version: Update-Hinweis erscheint');
 assert((await p.textContent('#updNotes')).includes('Neue Funktion A'),'Änderungen werden gezeigt');
-await p.click('#libClose');await p.click('#updLater');assert(!(await p.isVisible('#updBox')),'Später blendet aus');
+assert(!(await p.isVisible('#libDlg')),'Einstellungen schließen sich, damit der Hinweis bedienbar ist');await p.click('#updLater');assert(!(await p.isVisible('#updBox')),'Später blendet aus');
 await p.reload();await p.waitForTimeout(3600);assert(!(await p.isVisible('#updBox')),'Nach „Später“ nicht sofort wieder');
 remote={version:'9.1.0',build:B0+2,notes:['Noch neuer']};await p.evaluate(()=>checkUpdate(false));await p.waitForTimeout(300);
 assert(await p.isVisible('#updBox'),'Noch neueres Update erscheint wieder');
